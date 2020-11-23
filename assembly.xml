@@ -1,0 +1,49 @@
+<assembly
+   xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+
+  <baseDirectory>${project.artifactId}</baseDirectory>
+  
+  <formats>
+    <format>zip</format>
+  </formats>
+
+  <files>
+    <file>
+      <source>${project.basedir}/src/main/resources/version.xml</source>
+      <outputDirectory>.</outputDirectory>
+      <filtered>true</filtered>
+    </file>
+  </files>
+  
+  <fileSets>
+    <fileSet>
+      <includes>
+	<include>LICENSE.txt</include>
+	<!-- <include>plugin-machine-intelligence-master_OSS_Licenses.html</include> -->
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>target/lib</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+	<include>commons-io-${commons-io.version}.jar</include>
+	<include>commons-lang3-3.3.2.jar</include>
+	<include>guava-13.0.1.jar</include>
+	<include>jackson-core-asl-${jackson.version}.jar</include>
+	<include>jackson-mapper-asl-${jackson.version}.jar</include>
+	<include>opencsv-${opencsv.version}.jar</include>
+	<include>guava-27.0-jre.jar</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>target</directory>
+      <outputDirectory>.</outputDirectory>
+      <includes>
+	<include>*.jar</include>
+	<include>version.xml</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</assembly>
