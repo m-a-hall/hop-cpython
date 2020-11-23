@@ -22,7 +22,6 @@
 
 package org.phalanxdev.hop.ui.pipeline.transforms.cpython;
 
-import javax.xml.crypto.dsig.Transform;
 import org.apache.hop.core.Const;
 import org.apache.hop.core.Props;
 import org.apache.hop.core.exception.HopException;
@@ -35,7 +34,6 @@ import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransformMeta;
 import org.apache.hop.pipeline.transform.ITransformDialog;
-import org.apache.hop.pipeline.transform.TransformMeta;
 import org.apache.hop.pipeline.transform.errorhandling.IStream;
 import org.apache.hop.ui.core.dialog.ErrorDialog;
 import org.apache.hop.ui.core.dialog.ShowMessageDialog;
@@ -118,7 +116,6 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
   /**
    * Fields tab
    */
-  // TODO move vars to get to the script tab??
   private Label wlPyVarsToGet;
   private TextVar wtvPyVarsToGet;
   private Label wlOutputFields;
@@ -489,7 +486,6 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     fd.left = new FormAttachment( 0, 0 );
     fd.top = new FormAttachment( lastControl, MARGIN );
     fd.right = new FormAttachment( 100, -2 * MARGIN );
-    // TODO might have to fix this bottom setting somehow
     fd.bottom = new FormAttachment( wtvPyVarsToGet, -MARGIN );
     wstcScriptEditor.setLayoutData( fd );
 
@@ -497,7 +493,6 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     fd.left = new FormAttachment( 0, 0 );
     fd.top = new FormAttachment( 0, 0 );
     fd.right = new FormAttachment( 100, 0 );
-    // TODO might have to fix this bottom setting somehow
     fd.bottom = new FormAttachment( wtvPyVarsToGet, 0 );
     wcScript.setLayoutData( fd );
 
@@ -1072,8 +1067,8 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
         item.setText(1, Const.NVL(stepName, "")); //$NON-NLS-1$
         item.setText(2, Const.NVL(frameName, "")); //$NON-NLS-1$
 
-        TransformMeta m = pipelineMeta.findTransform(stepName);
-        infoStreams.get(i).setTransformMeta(m);
+        // TransformMeta m = pipelineMeta.findTransform(stepName);
+        // infoStreams.get(i).setTransformMeta(m);
       }
     }
 

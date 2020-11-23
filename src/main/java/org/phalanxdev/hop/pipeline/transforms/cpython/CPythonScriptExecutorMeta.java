@@ -667,9 +667,12 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
         + Const.CR); //$NON-NLS-1$
     List<IStream> infoStreams = getStepIOMeta().getInfoStreams();
     for (int i = 0; i < infoStreams.size(); i++) {
-      buff.append("    " //$NON-NLS-1$
-          + XmlHandler
-          .addTagValue(SINGLE_INCOMING_STEP_NAME_TAG + i, infoStreams.get(i).getTransformName()));
+      if (infoStreams.get(i).getSubject() != null) {
+        buff.append("    " //$NON-NLS-1$
+            + XmlHandler
+            .addTagValue(SINGLE_INCOMING_STEP_NAME_TAG + i,
+                infoStreams.get(i).getSubject().toString()));
+      }
     }
     buff.append("   " + XmlHandler.closeTag(INCOMING_STEP_NAMES_TAG)
         + Const.CR); //$NON-NLS-1$
