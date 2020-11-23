@@ -45,6 +45,7 @@ import org.apache.hop.pipeline.transform.ITransformMeta;
 import org.apache.hop.pipeline.transform.TransformIOMeta;
 import org.apache.hop.pipeline.transform.TransformMeta;
 import org.apache.hop.pipeline.transform.errorhandling.IStream;
+import org.apache.hop.pipeline.transform.errorhandling.IStream.StreamType;
 import org.apache.hop.pipeline.transform.errorhandling.Stream;
 import org.apache.hop.pipeline.transform.errorhandling.StreamIcon;
 import org.phalanxdev.hop.ui.pipeline.transforms.cpython.CPythonScriptExecutorDialog;
@@ -802,7 +803,7 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
   public ITransformIOMeta getStepIOMeta() {
 
     ITransformIOMeta ioMeta = super.getTransformIOMeta();
-    if (ioMeta.getTargetStreams().isEmpty()) {
+    if (ioMeta.getInfoStreams().isEmpty()) {
       ((TransformIOMeta) ioMeta).setInputAcceptor(true);
       ((TransformIOMeta) ioMeta).setOutputProducer(true);
       ((TransformIOMeta) ioMeta).setInputOptional(true);
@@ -811,10 +812,9 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
       ioMeta.setOutputDynamic(false);
 
       int numExpectedStreams = m_frameNames.size();
-
       for (int i = 0; i < numExpectedStreams; i++) {
         ioMeta.addStream(
-            new Stream(IStream.StreamType.INFO, null, "Input to pandas frame " + (i + 1),
+            new Stream(StreamType.INFO, null, "Input to pandas frame " + (i + 1),
                 StreamIcon.INFO, null));
       }
     }

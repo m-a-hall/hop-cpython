@@ -22,6 +22,7 @@
 
 package org.phalanxdev.hop.ui.pipeline.transforms.cpython;
 
+import javax.xml.crypto.dsig.Transform;
 import org.apache.hop.core.Const;
 import org.apache.hop.core.Props;
 import org.apache.hop.core.exception.HopException;
@@ -1007,9 +1008,6 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     List<IStream> infoStreams = meta.getStepIOMeta().getInfoStreams();
     for ( int i = 0; i < infoStreams.size(); i++ ) {
       TransformMeta m = pipelineMeta.findTransform( stepNames.get( i ) );
-      if ( m != null ) {
-        System.err.println( "Found step: " + m.getName() ); //$NON-NLS-1$
-      }
       infoStreams.get( i ).setTransformMeta( pipelineMeta.findTransform( stepNames.get( i ) ) );
     }
 
@@ -1062,16 +1060,20 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
 
   protected void setInputToFramesTableFields( CPythonScriptExecutorMeta meta ) {
     List<String> frameNames = meta.getFrameNames();
+    // List<IStream> infoStreams = meta.getStepIOMeta().getInfoStreams();
     List<IStream> infoStreams = meta.getStepIOMeta().getInfoStreams();
 
     wtvInputFrames.clearAll();
     for ( int i = 0; i < infoStreams.size(); i++ ) {
-      String stepName = infoStreams.get( i ).getTransformName();
+      String stepName = infoStreams.get( i ).getSubject().toString();
       String frameName = frameNames.get( i );
 
       TableItem item = new TableItem( wtvInputFrames.table, SWT.NONE );
       item.setText( 1, Const.NVL( stepName, "" ) ); //$NON-NLS-1$
       item.setText( 2, Const.NVL( frameName, "" ) ); //$NON-NLS-1$
+
+      TransformMeta m = pipelineMeta.findTransform(stepName);
+      infoStreams.get(i).setTransformMeta(m);
     }
 
     wtvInputFrames.removeEmptyRows();
