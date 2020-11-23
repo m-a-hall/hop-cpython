@@ -184,8 +184,8 @@ public class CPythonScriptExecutor extends
         }
 
         for ( int i = 0; i < infoStreams.size(); i++ ) {
-          IRowSet current = findInputRowSet( infoStreams.get( i ).getTransformName() );
-          IRowMeta associatedRowMeta = getPipelineMeta().getTransformFields( infoStreams.get( i ).getTransformName() );
+          IRowSet current = findInputRowSet( infoStreams.get( i ).getSubject().toString()  );
+          IRowMeta associatedRowMeta = getPipelineMeta().getTransformFields( infoStreams.get( i ).getSubject().toString() );
 
           if ( current == null ) {
             throw new HopException( BaseMessages

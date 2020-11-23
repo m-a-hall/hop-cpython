@@ -1007,8 +1007,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     meta.setFrameNames( frameNames );
     List<IStream> infoStreams = meta.getStepIOMeta().getInfoStreams();
     for ( int i = 0; i < infoStreams.size(); i++ ) {
-      TransformMeta m = pipelineMeta.findTransform( stepNames.get( i ) );
-      infoStreams.get( i ).setTransformMeta( pipelineMeta.findTransform( stepNames.get( i ) ) );
+      infoStreams.get(i).setSubject(stepNames.get(i));
     }
 
     // output field data from table
@@ -1065,15 +1064,17 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
 
     wtvInputFrames.clearAll();
     for ( int i = 0; i < infoStreams.size(); i++ ) {
-      String stepName = infoStreams.get( i ).getSubject().toString();
-      String frameName = frameNames.get( i );
+      if (infoStreams.get(i).getSubject() != null) {
+        String stepName = infoStreams.get(i).getSubject().toString();
+        String frameName = frameNames.get(i);
 
-      TableItem item = new TableItem( wtvInputFrames.table, SWT.NONE );
-      item.setText( 1, Const.NVL( stepName, "" ) ); //$NON-NLS-1$
-      item.setText( 2, Const.NVL( frameName, "" ) ); //$NON-NLS-1$
+        TableItem item = new TableItem(wtvInputFrames.table, SWT.NONE);
+        item.setText(1, Const.NVL(stepName, "")); //$NON-NLS-1$
+        item.setText(2, Const.NVL(frameName, "")); //$NON-NLS-1$
 
-      TransformMeta m = pipelineMeta.findTransform(stepName);
-      infoStreams.get(i).setTransformMeta(m);
+        TransformMeta m = pipelineMeta.findTransform(stepName);
+        infoStreams.get(i).setTransformMeta(m);
+      }
     }
 
     wtvInputFrames.removeEmptyRows();
