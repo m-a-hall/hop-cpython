@@ -409,7 +409,7 @@ radviz(iris, 'class')
 from sklearn import *
 from pandas import DataFrame
 import numpy as np
-from sklearn.externals import joblib
+import joblib
 import os
 
 # randomly shuffle the rows of the dataframe 
@@ -491,7 +491,7 @@ joblib.dump(dt,filename)
 from sklearn import *
 from pandas import DataFrame
 import numpy as np
-from sklearn.externals import joblib
+import joblib
 import os
 
 # load the model...
