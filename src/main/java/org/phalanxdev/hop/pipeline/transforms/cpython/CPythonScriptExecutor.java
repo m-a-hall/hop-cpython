@@ -25,6 +25,7 @@ package org.phalanxdev.hop.pipeline.transforms.cpython;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.apache.hop.core.IRowSet;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.row.IRowMeta;
@@ -41,24 +42,24 @@ import org.phalanxdev.hop.pipeline.transforms.reservoirsampling.ReservoirSamplin
 import org.phalanxdev.python.PythonSession;
 
 /**
- * Step that executes a python script using CPython. The step can accept 0 or more incoming row sets. Row
- * sets are sent to python as named pandas data frames. Data can be sent to python in batches, as samples, row-by-row
- * or as all available rows.
+ * Step that executes a python script using CPython. The step can accept 0 or more incoming row
+ * sets. Row sets are sent to python as named pandas data frames. Data can be sent to python in
+ * batches, as samples, row-by-row or as all available rows.
  * </p>
- * Output can be one or more variables that are set in python after the user's script executes. In the case of a single
- * variable this can be a data frame, in which case the columns of the frame become output fields from this step. In the
- * case of multiple variables they are retrieved in string form or as png image data - the step automatically detects if
- * a variable is an image and retrieves it as png. In this mode there is one row output from the step, where each outgoing
+ * Output can be one or more variables that are set in python after the user's script executes. In
+ * the case of a single variable this can be a data frame, in which case the columns of the frame
+ * become output fields from this step. In the case of multiple variables they are retrieved in
+ * string form or as png image data - the step automatically detects if a variable is an image and
+ * retrieves it as png. In this mode there is one row output from the step, where each outgoing
  * field holds the string/serializable value of a single variable.
  * </p>
- * The step requires python 2.7 or 3.4. It also requires the pandas, numpy, matplotlib and sklearn. The python executable
- * must be available in the user's path.
+ * The step requires python 2.7 or 3.4. It also requires the pandas, numpy, matplotlib and sklearn.
+ * The python executable must be available in the user's path.
  *
  * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
  */
-public class CPythonScriptExecutor extends
-    BaseTransform<CPythonScriptExecutorMeta, CPythonScriptExecutorData> implements
-    ITransform<CPythonScriptExecutorMeta, CPythonScriptExecutorData> {
+public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMeta, CPythonScriptExecutorData>
+    implements ITransform<CPythonScriptExecutorMeta, CPythonScriptExecutorData> {
 
   private static Class<?> PKG = CPythonScriptExecutorMeta.class;
 
@@ -67,20 +68,20 @@ public class CPythonScriptExecutor extends
 
   protected boolean m_noInputRowSets = false;
 
-  public CPythonScriptExecutor( TransformMeta transformMeta, CPythonScriptExecutorMeta meta, CPythonScriptExecutorData data,
-      int copyNr, PipelineMeta pipelineMeta, Pipeline pipeline ) {
+  public CPythonScriptExecutor( TransformMeta transformMeta, CPythonScriptExecutorMeta meta,
+      CPythonScriptExecutorData data, int copyNr, PipelineMeta pipelineMeta, Pipeline pipeline ) {
     super( transformMeta, meta, data, copyNr, pipelineMeta, pipeline );
 
     m_meta = meta;
     m_data = data;
   }
 
-  public boolean init(  ) {
+  public boolean init() {
     if ( super.init() ) {
       try {
-        if ( org.apache.hop.core.util.Utils.isEmpty( m_meta.getScript() ) && org.apache.hop.core.util.Utils.isEmpty( m_meta.getScriptToLoad() ) ) {
-          throw new HopException( BaseMessages
-              .getString( PKG, "CPythonScriptExecutor.Error.NoScriptProvided" ) );
+        if ( org.apache.hop.core.util.Utils.isEmpty( m_meta.getScript() ) && org.apache.hop.core.util.Utils
+            .isEmpty( m_meta.getScriptToLoad() ) ) {
+          throw new HopException( BaseMessages.getString( PKG, "CPythonScriptExecutor.Error.NoScriptProvided" ) );
         }
 
         if ( m_meta.getFrameNames() != null && m_meta.getFrameNames().size() > 0 ) {
@@ -110,7 +111,8 @@ public class CPythonScriptExecutor extends
         }
 
         // check python availability
-        CPythonScriptExecutorData.initPython(this, log);
+        CPythonScriptExecutorData
+            .initPython( m_meta.getPythonCommand(), m_meta.getPytServerID(), m_meta.getPyPathEntries(), this, log );
       } catch ( HopException ex ) {
         logError( ex.getMessage(), ex ); //$NON-NLS-1$
 
@@ -123,7 +125,7 @@ public class CPythonScriptExecutor extends
     return false;
   }
 
-  @Override public boolean processRow( ) throws HopException {
+  @Override public boolean processRow() throws HopException {
 
     if ( first ) {
       first = false;
@@ -184,8 +186,10 @@ public class CPythonScriptExecutor extends
         }
 
         for ( int i = 0; i < infoStreams.size(); i++ ) {
-          IRowSet current = findInputRowSet( infoStreams.get( i ).getSubject().toString()  );
-          IRowMeta associatedRowMeta = getPipelineMeta().getTransformFields( infoStreams.get( i ).getSubject().toString() );
+          IRowSet current = findInputRowSet( infoStreams.get( i ).getSubject().toString() );
+          IRowMeta
+              associatedRowMeta =
+              getPipelineMeta().getTransformFields( infoStreams.get( i ).getSubject().toString() );
 
           if ( current == null ) {
             throw new HopException( BaseMessages
@@ -269,11 +273,15 @@ public class CPythonScriptExecutor extends
             // push buffer into python and process result
             String frameName = environmentSubstitute( m_meta.getFrameNames().get( i ) );
 
-            logDetailed( BaseMessages
-                .getString( PKG, "CPythonScriptExecutor.Message.PushingBatchIntoPandasDataFrame", //$NON-NLS-1$
-                    frameBuffer.size(), frameName ) );
+            logDetailed( BaseMessages.getString( PKG, "CPythonScriptExecutor.Message.PushingBatchIntoPandasDataFrame",
+                //$NON-NLS-1$
+                frameBuffer.size(), frameName ) );
 
-            session = CPythonScriptExecutorData.acquirePySession( this, getLogChannel(), this );
+            // session = CPythonScriptExecutorData.acquirePySession(this, getLogChannel(), this);
+            session =
+                CPythonScriptExecutorData
+                    .acquirePySession( this, m_meta.getPythonCommand(), m_meta.getPytServerID(), getLogChannel(),
+                        this );
             rowsToPyDataFrame( session, m_data.m_incomingRowSets.get( i ).getRowMeta(), frameBuffer, frameName );
             framesAdded = true;
           } else {
@@ -290,7 +298,9 @@ public class CPythonScriptExecutor extends
         }
       } else if ( !m_noInputRowSets && allDone ) {
         boolean framesAdded = false;
-        session = CPythonScriptExecutorData.acquirePySession( this, getLogChannel(), this );
+        session =
+            CPythonScriptExecutorData
+                .acquirePySession( this, m_meta.getPythonCommand(), m_meta.getPytServerID(), getLogChannel(), this );
 
         // grab all the reservoirs an push to python; then process result
         logDetailed( BaseMessages.getString( PKG, "CPythonScriptExecutor.Message.RetrievingReservoirs" ) );
@@ -311,7 +321,10 @@ public class CPythonScriptExecutor extends
               List<Object[]> sampleSpliced = new ArrayList<Object[]>();
               for ( int k = 0; k < sample.size(); k++ ) {
                 Object[] objects = sample.get( k );
-                session = CPythonScriptExecutorData.acquirePySession( this, getLogChannel(), this );
+                session =
+                    CPythonScriptExecutorData
+                        .acquirePySession( this, m_meta.getPythonCommand(), m_meta.getPytServerID(), getLogChannel(),
+                            this );
                 sampleSpliced.clear();
                 sampleSpliced.add( objects );
                 rowsToPyDataFrame( session, m_data.m_incomingRowSets.get( j ).getRowMeta(), sampleSpliced, frameName );
@@ -320,7 +333,8 @@ public class CPythonScriptExecutor extends
                 executeScriptAndProcessResult( session, m_meta.getContinueOnUnsetVars() );
 
                 if ( session != null ) {
-                  CPythonScriptExecutorData.releasePySession( this );
+                  CPythonScriptExecutorData
+                      .releasePySession( this, m_meta.getPythonCommand(), m_meta.getPytServerID(), this );
                 }
               }
 
@@ -335,12 +349,14 @@ public class CPythonScriptExecutor extends
         }
       } else if ( m_noInputRowSets ) {
         // just get results from script as we have no inputs to us
-        session = CPythonScriptExecutorData.acquirePySession( this, getLogChannel(), this );
+        session =
+            CPythonScriptExecutorData
+                .acquirePySession( this, m_meta.getPythonCommand(), m_meta.getPytServerID(), getLogChannel(), this );
         executeScriptAndProcessResult( session, m_meta.getContinueOnUnsetVars() );
       }
     } finally {
       if ( session != null ) {
-        PythonSession.releaseSession( this );
+        CPythonScriptExecutorData.releasePySession( this, m_meta.getPythonCommand(), m_meta.getPytServerID(), this );
       }
     }
   }
@@ -454,8 +470,8 @@ public class CPythonScriptExecutor extends
     }
   }
 
-  protected void rowsToPyDataFrame( PythonSession session, IRowMeta rowMeta, List<Object[]> rows,
-      String pyFrameName ) throws HopException {
+  protected void rowsToPyDataFrame( PythonSession session, IRowMeta rowMeta, List<Object[]> rows, String pyFrameName )
+      throws HopException {
     session.rowsToPythonDataFrame( rowMeta, rows, pyFrameName );
   }
 

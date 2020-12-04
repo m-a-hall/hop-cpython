@@ -84,6 +84,9 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
   protected static final String SINGLE_INCOMING_STEP_NAME_TAG = "step_name";
   protected static final String OUTPUT_FIELDS_TAG = "output_fields";
   protected static final String SINGLE_OUTPUT_FIELD_TAG = "output_field";
+  protected static final String PYTHON_COMMAND = "python_command";
+  protected static final String PYTHON_PATH_ENTRIES = "python_path_entries";
+  protected static final String PYTHON_SERVER_ID = "python_server_id";
 
   /**
    * Default prefix for kettle data -> pandas frame name
@@ -103,6 +106,26 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
    */
   protected String m_script = BaseMessages
       .getString(PKG, "CPythonScriptExecutorMeta.InitialScriptText");
+
+  /**
+   * User-supplied path to python executable. If not specified, then we use the default python in
+   * the path
+   */
+  protected String m_pythonCommand = "";
+
+  /**
+   * Optional entries for the PATH, required so that python will execute correctly. Used when user
+   * has specified path to python executable. E.g. under windows, Anaconda requires Library/bin to
+   * be in the PATH as well as the python executable.
+   */
+  protected String m_pyPathEntries = "";
+
+  /**
+   * An optional ID for the python server. This plus the path to the executable uniquely identifies
+   * a non-default server. Can be used to share a given server instance among several clients, or to
+   * ensure that a given client has a dedicated server.
+   */
+  protected String m_serverID = "";
 
   /**
    * Whether to load a script at runtime
@@ -175,6 +198,30 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
    * Outgoing fields
    */
   protected IRowMeta m_outputFields;
+
+  public void setPythonCommand(String pythonCommand) {
+    m_pythonCommand = pythonCommand;
+  }
+
+  public String getPythonCommand() {
+    return m_pythonCommand;
+  }
+
+  public void setPyPathEntries(String pyPathEntries) {
+    m_pyPathEntries = pyPathEntries;
+  }
+
+  public String getPyPathEntries() {
+    return m_pyPathEntries;
+  }
+
+  public void setPyServerID(String pyServerID) {
+    m_serverID = pyServerID;
+  }
+
+  public String getPytServerID() {
+    return m_serverID;
+  }
 
   /**
    * Get the output structure
@@ -461,7 +508,8 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
   }
 
   @Override
-  public void getFields(IRowMeta rowMeta, String transformName, IRowMeta[] info, TransformMeta nextTransform,
+  public void getFields(IRowMeta rowMeta, String transformName, IRowMeta[] info,
+      TransformMeta nextTransform,
       IVariables space, IHopMetadataProvider metaStore) throws HopTransformException {
 
     rowMeta.clear();
@@ -513,7 +561,8 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
    * Add all incoming fields to the output row meta in the case where no output fields have been
    * defined/edited by the user
    */
-  private void addAllIncomingFieldsToOutput(IRowMeta rowMeta, String transformName, IRowMeta[] info) {
+  private void addAllIncomingFieldsToOutput(IRowMeta rowMeta, String transformName,
+      IRowMeta[] info) {
     if (getIncludeInputAsOutput()) {
       for (IRowMeta r : info) {
         rowMeta.addRowMeta(r);
@@ -599,7 +648,8 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
   public ITransform createTransform(TransformMeta transformMeta,
       CPythonScriptExecutorData stepDataInterface, int i, PipelineMeta pipelineMeta,
       Pipeline trans) {
-    return new CPythonScriptExecutor(transformMeta, this, stepDataInterface, i, pipelineMeta, trans);
+    return new CPythonScriptExecutor(transformMeta, this, stepDataInterface, i, pipelineMeta,
+        trans);
   }
 
   @Override
@@ -636,6 +686,9 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
   public String getXml() {
     StringBuilder buff = new StringBuilder();
 
+    buff.append(XmlHandler.addTagValue(PYTHON_COMMAND, getPythonCommand()));
+    buff.append(XmlHandler.addTagValue(PYTHON_PATH_ENTRIES, getPyPathEntries()));
+    buff.append(XmlHandler.addTagValue(PYTHON_SERVER_ID, getPytServerID()));
     buff.append(XmlHandler.addTagValue(ROWS_TO_PROCESS_TAG, getRowsToProcess()));
     buff.append(XmlHandler.addTagValue(ROWS_TO_PROCESS_SIZE_TAG, getRowsToProcessSize()));
     buff.append(XmlHandler.addTagValue(RESERVOIR_SAMPLING_TAG, getDoingReservoirSampling()));
@@ -701,6 +754,13 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
   @Override
   public void loadXml(Node transformNode, IHopMetadataProvider metadataProvider)
       throws HopXmlException {
+    String pythonC = XmlHandler.getTagValue(transformNode, PYTHON_COMMAND);
+    setPythonCommand(pythonC == null ? "" : pythonC);
+    String pyPathE = XmlHandler.getTagValue(transformNode, PYTHON_PATH_ENTRIES);
+    setPyPathEntries(pyPathE == null ? "" : pyPathE);
+    String pyServerID = XmlHandler.getTagValue(transformNode, PYTHON_SERVER_ID);
+    setPyServerID(pyServerID == null ? "" : pyServerID);
+
     String rowsToProcess = XmlHandler.getTagValue(transformNode, ROWS_TO_PROCESS_TAG);
     setRowsToProcess(rowsToProcess == null ? "" : rowsToProcess);
     String rowsToProcessSize = XmlHandler.getTagValue(transformNode, ROWS_TO_PROCESS_SIZE_TAG);
@@ -708,10 +768,12 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
     setDoingReservoirSampling(
         XmlHandler.getTagValue(transformNode, RESERVOIR_SAMPLING_TAG)
             .equalsIgnoreCase("Y")); //$NON-NLS-1$
-    String reservoirSamplingSize = XmlHandler.getTagValue(transformNode, RESERVOIR_SAMPLING_SIZE_TAG);
+    String reservoirSamplingSize = XmlHandler
+        .getTagValue(transformNode, RESERVOIR_SAMPLING_SIZE_TAG);
     setReservoirSamplingSize(reservoirSamplingSize == null ? "" : reservoirSamplingSize);
     setRandomSeed(XmlHandler.getTagValue(transformNode, RESERVOIR_SAMPLING_SEED_TAG));
-    String includeInputAsOutput = XmlHandler.getTagValue(transformNode, INCLUDE_INPUT_AS_OUTPUT_TAG);
+    String includeInputAsOutput = XmlHandler
+        .getTagValue(transformNode, INCLUDE_INPUT_AS_OUTPUT_TAG);
     if (!org.apache.hop.core.util.Utils.isEmpty(includeInputAsOutput)) {
       setIncludeInputAsOutput(includeInputAsOutput.equalsIgnoreCase("Y")); //$NON-NLS-1$
     }
@@ -795,7 +857,7 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
 
   public void clearStepIOMeta() {
     ITransformIOMeta ioMeta = super.getTransformIOMeta();
-    ( (TransformIOMeta) ioMeta ).clearStreams();
+    ((TransformIOMeta) ioMeta).clearStreams();
   }
 
   @Override

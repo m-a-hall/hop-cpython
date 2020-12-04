@@ -22,6 +22,10 @@
 
 package org.phalanxdev.python;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.io.IOUtils;
 
 import java.awt.image.BufferedImage;
@@ -40,6 +44,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.logging.ILogChannel;
 import org.apache.hop.core.row.IRowMeta;
@@ -56,22 +61,22 @@ import org.apache.hop.core.variables.IVariables;
 public class PythonSession {
 
   /**
-   * Kettle variable key to specify the full path to the python command. Takes precedence over both the java
+   * Hop variable key to specify the full path to the default python command. Takes precedence over both the java
    * property and the system evnironment variable
    */
-  public static final String KETTLE_CPYTHON_COMMAND_PROPERTY_KEY = "pdi.cpython.command";
+  public static final String HOP_CPYTHON_COMMAND_PROPERTY_KEY = "hop.cpython.command";
 
   /**
-   * Java property to specify full path to python command. If not set (and env var not set), we assume 'python' is in
+   * Java property to specify full path to the default python command. If not set (and env var not set), we assume 'python' is in
    * the PATH. Takes precedence over the env var.
    */
-  public static final String CPYTHON_COMMAND_PROPERTY_KEY = "pentaho.cpython.command";
+  public static final String CPYTHON_COMMAND_PROPERTY_KEY = "cpython.command";
 
   /**
-   * System environment variable to specify full path to python command. If not set (and java prop is not set), we
+   * System environment variable to specify full path to the default python command. If not set (and java prop is not set), we
    * assume 'python' is in the PATH.
    */
-  public static final String CPYTHON_COMMAND_ENV_VAR_KEY = "PENTAHO_CPYTHON_COMMAND";
+  public static final String CPYTHON_COMMAND_ENV_VAR_KEY = "HOP_CPYTHON_COMMAND";
 
   public static enum PythonVariableType {
     DataFrame, Image, String, Unknown;
@@ -88,19 +93,36 @@ public class PythonSession {
   }
 
   /**
-   * The command used to start python
+   * The command used to start python for this session.
    */
   private String m_pythonCommand;
+
+  /**
+   * Static map of initialized servers. A "default" entry will be used for
+   * backward compatibility
+   */
+  private static Map<String, PythonSession>
+      m_pythonServers =
+      Collections.synchronizedMap( new HashMap<String, PythonSession>() );
+
+  private static Map<String, String>
+      m_pythonEnvCheckResults =
+      Collections.synchronizedMap( new HashMap<String, String>() );
+
+  /**
+   * The unique key for this session/server
+   */
+  private String m_sessionKey;
+
+  /**
+   * the current session holder
+   */
+  private Object m_sessionHolder;
 
   /**
    * The session singleton
    */
   private static PythonSession s_sessionSingleton;
-
-  /**
-   * the current session holder
-   */
-  private static Object s_sessionHolder;
 
   /**
    * The results of the python check script
@@ -147,8 +169,11 @@ public class PythonSession {
    */
   protected ILogChannel m_log;
 
-  /** Path to the tmp directory */
-  protected String m_osTmpDir = "";
+  /**
+   * Path to the tmp directory
+   */
+  protected static String s_osTmpDir = null;
+  protected static boolean s_attemptedScriptInstall;
 
   /**
    * Acquire the session for the requester
@@ -158,7 +183,32 @@ public class PythonSession {
    * @throws SessionException if python is not available
    */
   public static PythonSession acquireSession( Object requester ) throws SessionException {
+    if ( s_sessionSingleton == null ) {
+      throw new SessionException( "Python not available!" );
+    }
+
     return s_sessionSingleton.getSession( requester );
+  }
+
+  /**
+   * @param pythonCommand command (either fully qualified path or that which is
+   *                      in the PATH). This, plus the optional ownerID is used to lookup
+   *                      and return a session/server.
+   * @param ownerID       an optional ownerID string for acquiring the session. This
+   *                      can be used to restrict the session/server to one (or more)
+   *                      clients (i.e. those with the ID "ownerID").
+   * @param requester     the object requesting the session/server
+   * @return a session
+   * @throws SessionException if the requested session/server is not available (or
+   *                          does not exist).
+   */
+  public static PythonSession acquireSession( String pythonCommand, String ownerID, Object requester )
+      throws SessionException {
+    String key = pythonCommand + ( ownerID != null && ownerID.length() > 0 ? ownerID : "" );
+    if ( !m_pythonServers.containsKey( key ) ) {
+      throw new SessionException( "Python session " + key + " does not seem to exist!" );
+    }
+    return m_pythonServers.get( key ).getSession( requester );
   }
 
   /**
@@ -172,6 +222,27 @@ public class PythonSession {
   }
 
   /**
+   * Release the user-specified python session.
+   *
+   * @param pythonCommand command (either fully qualified path or that which is
+   *                      in the PATH). This, plus the optional ownerID is used to lookup a
+   *                      session/server.
+   * @param ownerID       an optional ownerID string for identifying the session. This
+   *                      can be used to restrict the session/server to one (or more)
+   *                      clients (i.e. those with the ID "ownerID").
+   * @param requester     the object requesting the session/server
+   * @throws SessionException if the requested session/server is not available (or
+   *                          does not exist).
+   */
+  public static void releaseSession( String pythonCommand, String ownerID, Object requester ) throws SessionException {
+    String key = pythonCommand + ( ownerID != null && ownerID.length() > 0 ? ownerID : "" );
+    if ( !m_pythonServers.containsKey( key ) ) {
+      throw new SessionException( "Python session " + key + " does not seem to exist!" );
+    }
+    m_pythonServers.get( key ).dropSession( requester );
+  }
+
+  /**
    * Returns true if the python environment/server is available
    *
    * @return true if the python environment/server is available
@@ -180,85 +251,280 @@ public class PythonSession {
     return s_sessionSingleton != null;
   }
 
-  protected static File installPyScriptsToTmp() throws IOException {
-    ClassLoader loader = PythonSession.class.getClassLoader();
-    InputStream in = loader.getResourceAsStream( "py/pyCheck.py" );
-    if ( in == null ) {
-      throw new IOException( "Unable to read the pyCheck.py script as a resource" );
+  /**
+   * Returns true if the user-specified python environment/server (as specified
+   * by pythonCommand (and optional ownerID) is available.
+   *
+   * @param pythonCommand command (either fully qualified path or that which is
+   *                      in the PATH). This, plus the optional ownerID is used to lookup a
+   *                      session/server.
+   * @param ownerID       an optional ownerID string for identifying the session. This
+   *                      can be used to restrict the session/server to one (or more)
+   *                      clients (i.e. those with the ID "ownerID").
+   */
+  public static synchronized boolean pythonAvailable( String pythonCommand, String ownerID ) {
+    String key = pythonCommand + ( ownerID != null && ownerID.length() > 0 ? ownerID : "" );
+    return m_pythonServers.containsKey( key );
+  }
+
+  protected static synchronized File installPyScriptsToTmp() throws IOException {
+    if ( s_osTmpDir != null ) {
+      return new File( s_osTmpDir );
     }
 
-    String tmpDir = System.getProperty( "java.io.tmpdir" );
-    // System.err.println( "******* System tmp dir: " + tmpDir );
-    File tempDir = new File( tmpDir );
-    String pyCheckDest = tmpDir + File.separator + "pyCheck.py";
-    String pyServerDest = tmpDir + File.separator + "pyServer.py";
+    if ( !s_attemptedScriptInstall ) {
 
-    PrintWriter outW = null;
-    BufferedReader inR = null;
-    try {
-      outW = new PrintWriter( new BufferedWriter( new FileWriter( pyCheckDest ) ) );
-      inR = new BufferedReader( new InputStreamReader( in ) );
-      String line;
-      while ( ( line = inR.readLine() ) != null ) {
-        outW.println( line );
+      ClassLoader loader = PythonSession.class.getClassLoader();
+      InputStream in = loader.getResourceAsStream( "py/pyCheck.py" );
+      if ( in == null ) {
+        throw new IOException( "Unable to read the pyCheck.py script as a resource" );
       }
-      outW.flush();
-      outW.close();
-      inR.close();
 
-      in = loader.getResourceAsStream( "py/pyServer.py" );
-      outW = new PrintWriter( new BufferedWriter( new FileWriter( pyServerDest ) ) );
-      inR = new BufferedReader( new InputStreamReader( in ) );
-      while ( ( line = inR.readLine() ) != null ) {
-        outW.println( line );
-      }
-    } catch ( IOException ex ) {
-      ex.printStackTrace();
-      throw ex;
-    } finally {
-      if ( outW != null ) {
+      String tmpDir = System.getProperty( "java.io.tmpdir" );
+      // System.err.println( "******* System tmp dir: " + tmpDir );
+      File tempDir = new File( tmpDir );
+      String pyCheckDest = tmpDir + File.separator + "pyCheck.py";
+      String pyServerDest = tmpDir + File.separator + "pyServer.py";
+
+      PrintWriter outW = null;
+      BufferedReader inR = null;
+      try {
+        outW = new PrintWriter( new BufferedWriter( new FileWriter( pyCheckDest ) ) );
+        inR = new BufferedReader( new InputStreamReader( in ) );
+        String line;
+        while ( ( line = inR.readLine() ) != null ) {
+          outW.println( line );
+        }
         outW.flush();
         outW.close();
-      }
-      if ( inR != null ) {
         inR.close();
+
+        in = loader.getResourceAsStream( "py/pyServer.py" );
+        outW = new PrintWriter( new BufferedWriter( new FileWriter( pyServerDest ) ) );
+        inR = new BufferedReader( new InputStreamReader( in ) );
+        while ( ( line = inR.readLine() ) != null ) {
+          outW.println( line );
+        }
+      } catch ( IOException ex ) {
+        ex.printStackTrace();
+        throw ex;
+      } finally {
+        if ( outW != null ) {
+          outW.flush();
+          outW.close();
+        }
+        if ( inR != null ) {
+          inR.close();
+        }
+        s_attemptedScriptInstall = true;
       }
+      s_osTmpDir = tmpDir;
+      return tempDir;
+    } else {
+      throw new IOException( "Unable to install python scripts" );
+    }
+  }
+
+  /**
+   * Generates a script (shell or batch) by which to execute a given python script.
+   *
+   * @param pathEntries  additional PATH entries needed for python to execute correctly
+   * @param pyScriptName the name of the script (in wekaPython/resources/py) to execute
+   * @param windows      true if we are running under Windows
+   * @param scriptArgs   optional arguments for the python script
+   * @return the generated sh/bat script
+   */
+  private String getLaunchScript( String pathEntries, String pyScriptName, boolean windows, Object... scriptArgs ) {
+    File tmp = new File( s_osTmpDir );
+    String script = tmp.toString() + File.separator + pyScriptName;
+
+    String pathOriginal = System.getenv( windows ? "Path" : "PATH" );
+    if ( pathOriginal == null ) {
+      pathOriginal = "";
     }
 
-    return tempDir;
+    File pythFile = new File( m_pythonCommand );
+    String exeDir = pythFile.getParent() != null ? pythFile.getParent().toString() : "";
+
+    String
+        finalPath =
+        pathEntries != null && pathEntries.length() > 0 ? pathEntries + File.pathSeparator + pathOriginal :
+            pathOriginal;
+
+    finalPath = exeDir.length() > 0 ? exeDir + File.pathSeparator + finalPath : "" + finalPath;
+
+    StringBuilder sbuilder = new StringBuilder();
+    if ( windows ) {
+      sbuilder.append( "@echo off" ).append( "\n\n" );
+      sbuilder.append( "PATH=" + finalPath ).append( "\n\n" );
+      sbuilder.append( "python " + script );
+    } else {
+      sbuilder.append( "#!/bin/sh" ).append( "\n\n" );
+      sbuilder.append( "export PATH=" + finalPath ).append( "\n\n" );
+      sbuilder.append( "python " + script );
+    }
+
+    for ( Object arg : scriptArgs ) {
+      sbuilder.append( " " ).append( arg.toString() );
+    }
+    sbuilder.append( "\n" );
+
+    return sbuilder.toString();
+  }
+
+  /**
+   * Executes the python environment check script via a wrapping shell/batch script.
+   *
+   * @param pathEntries additional entries for the PATH that are required in order for
+   *                    python to execute correctly
+   * @return the result of executing the python environment check
+   * @throws IOException if a problem occurs
+   */
+  private String writeAndLaunchPyCheck( String pathEntries ) throws IOException {
+
+    String osType = System.getProperty( "os.name" );
+    boolean windows = osType != null && osType.toLowerCase().contains( "windows" );
+
+    String script = getLaunchScript( pathEntries, "pyCheck.py", windows );
+
+    // System.err.println("**** Executing shell script: \n\n" + script);
+
+    String scriptPath = File.createTempFile( "nixtester_", windows ? ".bat" : ".sh" ).toString();
+    // System.err.println("Script path: " + scriptPath);
+
+    FileWriter fwriter = new FileWriter( scriptPath );
+    fwriter.write( script );
+    fwriter.flush();
+    fwriter.close();
+
+    if ( !windows ) {
+      Runtime.getRuntime().exec( "chmod u+x " + scriptPath );
+    }
+    ProcessBuilder builder = new ProcessBuilder( scriptPath );
+    Process pyProcess = builder.start();
+    StringWriter writer = new StringWriter();
+    IOUtils.copy( pyProcess.getInputStream(), writer );
+
+    return writer.toString();
+  }
+
+  /**
+   * Launches the server using a shell/batch script generated on the fly. Used
+   * when the user supplies a path to a python executable and additional entries
+   * are needed in the PATH.
+   *
+   * @param pathEntries entries to prepend to the PATH
+   * @throws IOException if a problem occurs when launching the server
+   */
+  private void launchServerScript( String pathEntries ) throws IOException {
+    String osType = System.getProperty( "os.name" );
+    boolean windows = osType != null && osType.toLowerCase().contains( "windows" );
+
+    Thread acceptThread = startServerSocket();
+    boolean debug = m_log != null && m_log.isDebug();
+    String
+        script =
+        getLaunchScript( pathEntries, "pyServer.py", windows, m_serverSocket.getLocalPort(), debug ? "debug" : "" );
+    if ( debug ) {
+      System.err.println( "Executing server launch script:\n\n" + script );
+    }
+
+    String scriptPath = File.createTempFile( "pyserver_", windows ? ".bat" : ".sh" ).toString();
+
+    FileWriter fwriter = new FileWriter( scriptPath );
+    fwriter.write( script );
+    fwriter.flush();
+    fwriter.close();
+
+    if ( !windows ) {
+      Runtime.getRuntime().exec( "chmod u+x " + scriptPath );
+    }
+
+    ProcessBuilder processBuilder = new ProcessBuilder( scriptPath );
+    m_serverProcess = processBuilder.start();
+    try {
+      acceptThread.join();
+    } catch ( InterruptedException e ) {
+    }
+
+    checkLocalSocketAndCreateShutdownHook();
+  }
+
+  /**
+   * Private constructor
+   *
+   * @param pythonCommand the python command to use
+   * @param serverID      optional ID for the server. This, plus the path to the python executable can be
+   *                      used to uniquely identify a given server instance
+   * @param pathEntries   optional additional entries for the PATH that are required for this python
+   *                      instance/virtual environment to execute correctly
+   * @param defaultServer true if this is the default server (i.e. the python already present in the path)
+   * @param log           the log to use
+   * @throws IOException if a problem occurs
+   */
+  private PythonSession( String pythonCommand, String serverID, String pathEntries, boolean defaultServer,
+      ILogChannel log ) throws IOException {
+
+    installPyScriptsToTmp();
+    m_pythonCommand = pythonCommand;
+    String key = pythonCommand + ( serverID != null && serverID.length() > 0 ? serverID : "" );
+    m_sessionKey = key;
+
+    if ( PythonSession.m_pythonServers.containsKey( m_sessionKey ) ) {
+      throw new IOException( "A server session for " + m_sessionKey + " Already exists!" );
+    }
+    if ( !defaultServer && pathEntries != null && pathEntries.length() > 0 ) {
+      // use a shell/batch script to launch the server (so that we can
+      // set the path so that the python server works correctly)
+      String envCheckResults = writeAndLaunchPyCheck( pathEntries );
+      m_pythonEnvCheckResults.put( m_sessionKey, envCheckResults );
+      if ( envCheckResults.length() < 5 ) {
+        // launch server
+        log.logDetailed(
+            "Launching " + m_pythonCommand + " with additional path [" + pathEntries + "] " + ( serverID != null ?
+                " ID " + serverID : "" ) );
+        launchServerScript( pathEntries );
+        m_pythonServers.put( m_sessionKey, this );
+      } else {
+        log.logError( "Was unable to launch server:\n\n" + envCheckResults );
+      }
+    } else {
+      File tmp = new File( s_osTmpDir );
+      String tester = tmp.toString() + File.separator + "pyCheck.py";
+
+      ProcessBuilder builder = new ProcessBuilder( pythonCommand, tester );
+      Process pyProcess = builder.start();
+      StringWriter writer = new StringWriter();
+      IOUtils.copy( pyProcess.getInputStream(), writer );
+      String envCheckResults = writer.toString();
+      m_shutdown = false;
+
+      m_pythonEnvCheckResults.put( m_sessionKey, envCheckResults );
+      if ( envCheckResults.length() < 5 ) {
+        log.logDetailed( "Launching " + m_pythonCommand + ( serverID != null ? " ID " + serverID : "" ));
+        // launch server
+        launchServer( true );
+        m_pythonServers.put( m_sessionKey, this );
+
+        if ( s_sessionSingleton == null && defaultServer ) {
+          s_sessionSingleton = this;
+          s_pythonEnvCheckResults = envCheckResults;
+        }
+      } else {
+        log.logError( "Was unable to launch server:\n\n" + envCheckResults );
+      }
+    }
   }
 
   /**
    * Private constructor
    *
    * @param pythonCommand the command used to start python
+   * @param log           the log to use
    * @throws IOException if a problem occurs
    */
-  private PythonSession( String pythonCommand ) throws IOException {
-    m_pythonCommand = pythonCommand;
-    s_sessionSingleton = null;
-    s_pythonEnvCheckResults = "";
-
-    // Read scripts from classpath and write them to tmp.
-    /* String
-        tester =
-        m_kettlePluginDir + File.separator + File.separator + "resources" + File.separator + "py" + File.separator
-            + "pyCheck.py"; */
-    File tmpDir = installPyScriptsToTmp();
-    m_osTmpDir = tmpDir.toString();
-    String tester = m_osTmpDir + File.separator + "pyCheck.py";
-    ProcessBuilder builder = new ProcessBuilder( pythonCommand, tester );
-    Process pyProcess = builder.start();
-    StringWriter writer = new StringWriter();
-    IOUtils.copy( pyProcess.getInputStream(), writer );
-    s_pythonEnvCheckResults = writer.toString();
-    m_shutdown = false;
-
-    // launch the server socket and python server
-    if ( s_pythonEnvCheckResults.length() < 5 ) {
-      launchServer( true );
-      s_sessionSingleton = this;
-    }
+  private PythonSession( String pythonCommand, ILogChannel log ) throws IOException {
+    this( pythonCommand, null, null, true, log );
   }
 
   /**
@@ -269,16 +535,12 @@ public class PythonSession {
    * @throws SessionException if python is not available
    */
   private synchronized PythonSession getSession( Object requester ) throws SessionException {
-    if ( s_sessionSingleton == null ) {
-      throw new SessionException( "Python not available!" );
-    }
-
-    if ( s_sessionHolder == requester ) {
+    if ( m_sessionHolder == requester ) {
       return this;
     }
 
     m_mutex.safeLock();
-    s_sessionHolder = requester;
+    m_sessionHolder = requester;
     return this;
   }
 
@@ -288,34 +550,25 @@ public class PythonSession {
    * @param requester the requesting object
    */
   private void dropSession( Object requester ) {
-    if ( requester == s_sessionHolder ) {
-      s_sessionHolder = null;
+    if ( requester == m_sessionHolder ) {
+      m_sessionHolder = null;
       m_mutex.unlock();
     }
   }
 
   /**
-   * Launches the python server. Performs some basic requirements checks for the
-   * python environment - e.g. python needs to have numpy, pandas and sklearn
-   * installed.
+   * Starts the server socket.
    *
-   * @param startPython true if the server is to actually be started. False is
-   *                    really just for debugging/development where the server can be
-   *                    manually started in a separate terminal
+   * @return the Thread that the server socket is waiting for a connection on.
    * @throws IOException if a problem occurs
    */
-  private void launchServer( boolean startPython ) throws IOException {
+  private Thread startServerSocket() throws IOException {
     if ( m_log != null ) {
       m_log.logDebug( "Launching server socket..." );
     }
     m_serverSocket = new ServerSocket( 0 );
-    m_serverSocket.setSoTimeout( 10000 );
-    int localPort = m_serverSocket.getLocalPort();
-    if ( m_log != null ) {
-      m_log.logDebug( "Local port: " + localPort );
-    } else {
-      System.err.println( "Local port: " + localPort );
-    }
+    m_serverSocket.setSoTimeout( 12000 );
+
     Thread acceptThread = new Thread() {
       @Override public void run() {
         try {
@@ -327,22 +580,17 @@ public class PythonSession {
     };
     acceptThread.start();
 
-    if ( startPython ) {
-      /*String
-          serverScript =
-          m_kettlePluginDir + File.separator + "resources" + File.separator + "py" + File.separator + "pyServer.py"; */
-      String serverScript = m_osTmpDir + File.separator + "pyServer.py";
-      boolean debug = m_log != null && m_log.isDebug();
-      ProcessBuilder
-          processBuilder =
-          new ProcessBuilder( m_pythonCommand, serverScript, "" + localPort, debug ? "debug" : "" );
-      m_serverProcess = processBuilder.start();
-    }
-    try {
-      acceptThread.join();
-    } catch ( InterruptedException e ) {
-    }
+    return acceptThread;
+  }
 
+  /**
+   * If the local socket could not be created, this method shuts down the
+   * server. Otherwise, a shutdown hook is added to bring the server down when
+   * the JVM exits.
+   *
+   * @throws IOException if a problem occurs
+   */
+  private void checkLocalSocketAndCreateShutdownHook() throws IOException {
     if ( m_localSocket == null ) {
       shutdown();
       throw new IOException( "Was unable to start python server" );
@@ -358,12 +606,43 @@ public class PythonSession {
     }
   }
 
+  /**
+   * Launches the python server. Performs some basic requirements checks for the
+   * python environment - e.g. python needs to have numpy, pandas and sklearn
+   * installed.
+   *
+   * @param startPython true if the server is to actually be started. False is
+   *                    really just for debugging/development where the server can be
+   *                    manually started in a separate terminal
+   * @throws IOException if a problem occurs
+   */
+  private void launchServer( boolean startPython ) throws IOException {
+
+    Thread acceptThread = startServerSocket();
+    int localPort = m_serverSocket.getLocalPort();
+
+    if ( startPython ) {
+      String serverScript = s_osTmpDir + File.separator + "pyServer.py";
+      boolean debug = m_log != null && m_log.isDebug();
+      ProcessBuilder
+          processBuilder =
+          new ProcessBuilder( m_pythonCommand, serverScript, "" + localPort, debug ? "debug" : "" );
+      m_serverProcess = processBuilder.start();
+    }
+    try {
+      acceptThread.join();
+    } catch ( InterruptedException e ) {
+    }
+
+    checkLocalSocketAndCreateShutdownHook();
+  }
+
   public void setLog( ILogChannel log ) {
     m_log = log;
   }
 
   /**
-   * Initialize the session. This needs to be called exactly once in order to
+   * Initialize the default session. This needs to be called exactly once in order to
    * run checks and launch the server. Creates a session singleton. Assumes python
    * is in the PATH; alternatively, can specify full path to python exe via the java
    * property or system environment variable pentaho.cpython.command.
@@ -373,7 +652,7 @@ public class PythonSession {
    * @param log           logging
    * @return true if the server launched successfully
    * @throws HopException if there was a problem - missing packages in python,
-   *                         or python could not be started for some reason
+   *                      or python could not be started for some reason
    */
   public static synchronized boolean initSession( String pythonCommand, IVariables vars, ILogChannel log )
       throws HopException {
@@ -383,8 +662,9 @@ public class PythonSession {
       // throw new HopException( BaseMessages.getString( ServerUtils.PKG, "PythonSession.Error.EnvAlreadyAvailable" ) );
     }
 
-    if ( vars != null && !org.apache.hop.core.util.Utils.isEmpty( vars.getVariable( KETTLE_CPYTHON_COMMAND_PROPERTY_KEY ) ) ) {
-      pythonCommand = vars.getVariable( KETTLE_CPYTHON_COMMAND_PROPERTY_KEY );
+    if ( vars != null && !org.apache.hop.core.util.Utils
+        .isEmpty( vars.getVariable( HOP_CPYTHON_COMMAND_PROPERTY_KEY ) ) ) {
+      pythonCommand = vars.getVariable( HOP_CPYTHON_COMMAND_PROPERTY_KEY );
       File pyExe = new File( pythonCommand );
       if ( !pyExe.exists() || !pyExe.isFile() ) {
         throw new HopException( "Python exe: " + pythonCommand + " does not seem to exist on the " + "filesystem!" );
@@ -403,18 +683,54 @@ public class PythonSession {
       }
     }
 
+    String osType = System.getProperty( "os.name" );
+    boolean windows = osType != null && osType.toLowerCase().contains( "windows" );
+
     log.logDebug( "Python command: " + pythonCommand );
-    String path = System.getenv( "PATH" );
+    String path = System.getenv( windows ? "Path" : "PATH" );
     if ( path != null && path.length() > 0 ) {
       log.logDebug( "PATH: " + path );
     }
     try {
-      new PythonSession( pythonCommand );
+      new PythonSession( pythonCommand, log );
     } catch ( IOException ex ) {
       throw new HopException( ex );
     }
 
     return s_pythonEnvCheckResults.length() < 5;
+  }
+
+  /**
+   * Initialize a server/session for a user-supplied python path and (optional)
+   * ownerID.
+   *
+   * @param pythonCommand command (either fully qualified path or that which is
+   *                      in the PATH). This, plus the optional ownerID is used to lookup
+   *                      and return a session/server.
+   * @param ownerID       an optional ownerID string for acquiring the session. This
+   *                      can be used to restrict the session/server to one (or more)
+   *                      clients (i.e. those with the ID "ownerID").
+   * @param pathEntries   optional entries that need to be in the PATH in order
+   *                      for the python environment to work correctly
+   * @param debug         true for debugging info
+   * @param log           the log to use
+   * @return true if the server launched successfully
+   * @throws HopException if the requested session/server is not available (or
+   *                      does not exist).
+   */
+  public static synchronized boolean initSession( String pythonCommand, String ownerID, String pathEntries,
+      boolean debug, ILogChannel log ) throws HopException {
+    String key = pythonCommand + ( ownerID != null && ownerID.length() > 0 ? ownerID : "" );
+
+    if ( !m_pythonServers.containsKey( key ) ) {
+      try {
+        new PythonSession( pythonCommand, ownerID, pathEntries, false, log );
+      } catch ( IOException ex ) {
+        throw new HopException( ex );
+      }
+    }
+
+    return m_pythonEnvCheckResults.get( key ).length() < 5;
   }
 
   /**
@@ -424,6 +740,29 @@ public class PythonSession {
    */
   public static String getPythonEnvCheckResults() {
     return s_pythonEnvCheckResults;
+  }
+
+  /**
+   * Gets the result of running the checks in python for the given python path +
+   * optional ownerID.
+   *
+   * @param pythonCommand command (either fully qualified path or that which is
+   *                      in the PATH). This, plus the optional ownerID is used to lookup
+   *                      and return a session/server.
+   * @param ownerID       an optional ownerID string for acquiring the session. This
+   *                      can be used to restrict the session/server to one (or more)
+   *                      clients (i.e. those with the ID "ownerID").
+   * @return a string containing the possible errors
+   * @throws HopException if the requested server does not exist
+   */
+  public static String getPythonEnvCheckResults( String pythonCommand, String ownerID ) throws HopException {
+    String key = pythonCommand + ( ownerID != null && ownerID.length() > 0 ? ownerID : "" );
+
+    if ( !m_pythonEnvCheckResults.containsKey( key ) ) {
+      throw new HopException( "The specified server/environment (" + key + ") does not seem to exist!" );
+    }
+
+    return m_pythonEnvCheckResults.get( key );
   }
 
   /**
@@ -638,10 +977,6 @@ public class PythonSession {
 
   public static void main( String[] args ) {
     try {
-
-/*      File tmp = PythonSession.installPyScriptsToTmp();
-      System.err.println( tmp ); */
-
       if ( !PythonSession.initSession( "python", null, null ) ) {
         System.err.print( "Initialization failed!" );
         System.exit( 1 );

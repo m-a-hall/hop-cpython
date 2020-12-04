@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
 import org.apache.hop.core.IRowSet;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.logging.ILogChannel;
@@ -69,15 +70,17 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
   protected static final int NUM_RANDOM_ROWS = 100;
 
   /**
-   * The reservoir sampling class does not have "store all rows" behavior when the sample size is -1. Instead, it is
-   * disabled entirely when sample size < 0. So to simulate this behavior we use a default size for the -1 case. If this
-   * is not sufficient, then the user will have to manually set a size that is large enough. Note that Integer.MAX_VALUE
-   * is not used because the reservoir class allocates an array list of size equal to the sample size.
+   * The reservoir sampling class does not have "store all rows" behavior when the sample size is
+   * -1. Instead, it is disabled entirely when sample size < 0. So to simulate this behavior we use
+   * a default size for the -1 case. If this is not sufficient, then the user will have to manually
+   * set a size that is large enough. Note that Integer.MAX_VALUE is not used because the reservoir
+   * class allocates an array list of size equal to the sample size.
    */
   protected static final int DEFAULT_RESERVOIR_SAMPLING_STORE_ALL_ROWS_SIZE = 100000;
 
   /**
-   * Holds the full output row meta data (including any incoming fields that are copied to the outgoing)
+   * Holds the full output row meta data (including any incoming fields that are copied to the
+   * outgoing)
    */
   public IRowMeta m_outputRowMeta;
 
@@ -117,8 +120,8 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
   protected List<IRowMeta> m_infoMetas = new ArrayList<IRowMeta>();
 
   /**
-   * A index used to reference a line for the incoming rows when we are processing row by row with reservoir sampling
-   * active.
+   * A index used to reference a line for the incoming rows when we are processing row by row with
+   * reservoir sampling active.
    */
   protected int m_rowByRowReservoirSampleIndex;
 
@@ -153,13 +156,15 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
   protected Map<String, Integer> m_nonScriptOutputMetaIndexLookup = new HashMap<String, Integer>();
 
   /**
-   * Variables to retrieve or columns present in pandas data frame that are not defined in the output meta
+   * Variables to retrieve or columns present in pandas data frame that are not defined in the
+   * output meta
    */
   protected List<String> m_varsOrColsNotDefinedInOutputMeta = new ArrayList<String>();
 
   /**
-   * Variables or columns defined in the output meta that are not present in the variables to retrieve or columns in the pandas data frame.
-   * Script logic (based on input values) could dictate that some variables are not set or dataframe columns not generated for some reason.
+   * Variables or columns defined in the output meta that are not present in the variables to
+   * retrieve or columns in the pandas data frame. Script logic (based on input values) could
+   * dictate that some variables are not set or dataframe columns not generated for some reason.
    */
   protected List<String> m_varsOrColsInOutputMetaNotPresent = new ArrayList<String>();
 
@@ -211,8 +216,8 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
   }
 
   /**
-   * Initialise a lookup on output indexes of any fields being copied from input to output. User may re-order
-   * output fields in the dialog for this step, so we need the lookup.
+   * Initialise a lookup on output indexes of any fields being copied from input to output. User may
+   * re-order output fields in the dialog for this step, so we need the lookup.
    */
   public void initNonScriptOutputIndexLookup() {
     for ( IValueMeta v : m_incomingFieldsIncludedInOutputRowMeta.getValueMetaList() ) {
@@ -226,9 +231,9 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
    *
    * @param session         the session to use
    * @param frameName       the name of the frame to get
-   * @param includeRowIndex true if the frame's row index is to be an output field (this can be useful in some cases - e.g.
-   *                        using pandas routine to compute quantiles of columns stores the quantile value in the index of
-   *                        the resulting data frame)
+   * @param includeRowIndex true if the frame's row index is to be an output field (this can be
+   *                        useful in some cases - e.g. using pandas routine to compute quantiles of columns stores the
+   *                        quantile value in the index of the resulting data frame)
    * @param log             the log to use
    * @return output rows holding the values from the data frame
    * @throws HopException if a problem occurs
@@ -284,14 +289,15 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
   }
 
   /**
-   * Constructs an outgoing row in the case where more than one variable is being extracted from python. In this
-   * case there is just one output row after executing the script. Each outgoing field holds the value (either a
-   * string or a serializable) of one of the requested python variables.
+   * Constructs an outgoing row in the case where more than one variable is being extracted from
+   * python. In this case there is just one output row after executing the script. Each outgoing
+   * field holds the value (either a string or a serializable) of one of the requested python
+   * variables.
    *
    * @param session             the session to use
    * @param varsToGet           the list of variables to extract from python
-   * @param continueOnUnsetVars true if we should not complain if a requested variable is not set in python after
-   *                            the script executes
+   * @param continueOnUnsetVars true if we should not complain if a requested variable is not set in
+   *                            python after the script executes
    * @param log                 the log to use
    * @return an output row
    * @throws HopException if a problem occurs
@@ -399,8 +405,8 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
   }
 
   /**
-   * Generate some random rows to send to python in the case where a single variable (data frame) is being extracted
-   * and we want to try and determine the types of the output fields
+   * Generate some random rows to send to python in the case where a single variable (data frame) is
+   * being extracted and we want to try and determine the types of the output fields
    *
    * @param inputMeta incoming row meta
    * @param r         Random instance to use
@@ -410,9 +416,7 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
   protected static List<Object[]> generateRandomRows( IRowMeta inputMeta, Random r ) throws HopException {
     List<Object[]> rows = new ArrayList<Object[]>( NUM_RANDOM_ROWS );
     // IValueMeta numericVM = new ValueMeta( "num", IValueMeta.TYPE_NUMBER ); //$NON-NLS-1$
-    IValueMeta
-        numericVM =
-        ValueMetaFactory.createValueMeta( "num", IValueMeta.TYPE_NUMBER ); //$NON-NLS-1$
+    IValueMeta numericVM = ValueMetaFactory.createValueMeta( "num", IValueMeta.TYPE_NUMBER ); //$NON-NLS-1$
 
     for ( int i = 0; i < NUM_RANDOM_ROWS; i++ ) {
       Object[] currentRow = new Object[inputMeta.size()];
@@ -467,9 +471,20 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
     return rows;
   }
 
+  /**
+   * Determine output meta for a single python variable
+   *
+   * @param requester                 the requesting object
+   * @param inputMetas                input metadata
+   * @param cPythonScriptExecutorMeta meta class
+   * @param log                       log to use
+   * @param vars                      variables to use
+   * @return rows and row meta
+   * @throws HopException if a problem occurs
+   */
   public static PythonSession.RowMetaAndRows determineOutputMetaSingleVariable( Object requester,
-      List<IRowMeta> inputMetas, CPythonScriptExecutorMeta cPythonScriptExecutorMeta, ILogChannel log,
-      IVariables vars ) throws HopException {
+      List<IRowMeta> inputMetas, CPythonScriptExecutorMeta cPythonScriptExecutorMeta, ILogChannel log, IVariables vars )
+      throws HopException {
 
     synchronized ( requester ) {
       PythonSession.RowMetaAndRows outputMeta = null;
@@ -504,7 +519,9 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
 
         Random r = new Random( 1 );
 
-        session = acquirePySession( requester, log, vars );
+        session =
+            acquirePySession( requester, cPythonScriptExecutorMeta.getPythonCommand(),
+                cPythonScriptExecutorMeta.getPytServerID(), log, vars );
 
         List<List<Object[]>> randomRows = new ArrayList<List<Object[]>>();
         if ( inputMetas != null ) {
@@ -549,11 +566,19 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
       } catch ( Exception ex ) {
         throw new HopException( ex );
       } finally {
-        releasePySession( requester );
+        releasePySession( requester, cPythonScriptExecutorMeta.getPythonCommand(),
+            cPythonScriptExecutorMeta.getPytServerID(), vars );
       }
     }
   }
 
+  /**
+   * Init for the default server (i.e. python that is present in the PATH)
+   *
+   * @param vars vars to use
+   * @param log  log to use
+   * @throws HopException if a problem occurs
+   */
   public static void initPython( IVariables vars, ILogChannel log ) throws HopException {
     // check python availability
     if ( !PythonSession.pythonAvailable() ) {
@@ -575,6 +600,65 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
     }
   }
 
+  /**
+   * Init python for user supplied path to python exe
+   *
+   * @param pythonCommand the path to the python exe
+   * @param serverID      an (optional) ID to give to this server instance
+   * @param pyPathEntries (optional) additional path entries that are required in the PATH for this python
+   *                      instance/virtual environment to start
+   * @param vars          vars to use
+   * @param log           log to use
+   * @throws HopException if a problem occurs
+   */
+  public static void initPython( String pythonCommand, String serverID, String pyPathEntries, IVariables vars,
+      ILogChannel log ) throws HopException {
+    // check python availablity
+    if ( pythonCommand != null ) {
+      pythonCommand = vars.environmentSubstitute( pythonCommand );
+    }
+    if ( pyPathEntries != null ) {
+      pyPathEntries = vars.environmentSubstitute( pyPathEntries );
+    }
+    if ( serverID != null ) {
+      serverID = vars.environmentSubstitute( serverID );
+    }
+    String
+        pyCommand =
+        pythonCommand != null && pythonCommand.length() > 0 && !pythonCommand.equalsIgnoreCase( "default" ) ?
+            pythonCommand : null;
+    String
+        pyPath =
+        pyPathEntries != null && pyPathEntries.length() > 0 && !pyPathEntries.equalsIgnoreCase( "default" ) ?
+            pyPathEntries : null;
+    String sID = serverID != null && serverID.length() > 0 && !serverID.equalsIgnoreCase( "none" ) ? serverID : null;
+
+    if ( pyCommand == null ) {
+      initPython( vars, log );
+    } else {
+      if ( !PythonSession.initSession( pyCommand, sID, pyPath, log.isDebug(), log ) ) {
+        String pyCheckResults = PythonSession.getPythonEnvCheckResults( pyCommand, sID );
+        if ( !org.apache.hop.core.util.Utils.isEmpty( pyCheckResults ) ) {
+          throw new HopException(
+              BaseMessages.getString( PKG, "CPythonScriptExecutor.Error.PythonInitializationProblem" ) + ":\n\n"
+                  + pyCheckResults );
+        } else {
+          throw new HopException(
+              BaseMessages.getString( PKG, "CPythonScriptExecutor.Error.PythonInitializationProblem" ) );
+        }
+      }
+    }
+  }
+
+  /**
+   * Acquire the default python session.
+   *
+   * @param requester the requesting object
+   * @param log       the log to use
+   * @param vars      vars to use
+   * @return the default python session
+   * @throws HopException if a problem occurs
+   */
   public static PythonSession acquirePySession( Object requester, ILogChannel log, IVariables vars )
       throws HopException {
     // check availability first...
@@ -591,7 +675,90 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
     return session;
   }
 
+  /**
+   * Release the default (i.e. available in the PATH) python session
+   *
+   * @param requester the requesting object
+   */
   protected static void releasePySession( Object requester ) {
     PythonSession.releaseSession( requester );
+  }
+
+  /**
+   * Release the user-specified python session
+   *
+   * @param requester     the requesting object
+   * @param pythonCommand the path to the python executable used in this session
+   * @param serverID      (optional) server ID for this session (this, combined with the python path
+   *                      can be used to uniquely identify a given server/session)
+   * @param vars          the environment variables to use
+   * @throws HopException if a problem occurs
+   */
+  protected static void releasePySession( Object requester, String pythonCommand, String serverID, IVariables vars )
+      throws HopException {
+    if ( pythonCommand != null ) {
+      pythonCommand = vars.environmentSubstitute( pythonCommand );
+    }
+    if ( serverID != null ) {
+      serverID = vars.environmentSubstitute( serverID );
+    }
+    String
+        pyCommand =
+        pythonCommand != null && pythonCommand.length() > 0 && !pythonCommand.equalsIgnoreCase( "default" ) ?
+            pythonCommand : null;
+    String sID = serverID != null && serverID.length() > 0 && !serverID.equalsIgnoreCase( "none" ) ? serverID : null;
+
+    if ( pyCommand == null ) {
+      releasePySession( requester );
+    } else {
+      if ( PythonSession.pythonAvailable( pyCommand, sID ) ) {
+        try {
+          PythonSession.releaseSession( pyCommand, sID, requester );
+        } catch ( SessionException e ) {
+          throw new HopException( e );
+        }
+      }
+    }
+  }
+
+  /**
+   * Acquire the user-specified python session/server
+   *
+   * @param requester     the requesting object
+   * @param pythonCommand the path to the python executable for the session in question
+   * @param serverID      (optional) server ID (this, combined with the python path can be used to
+   *                      uniquely identify a given server/session)
+   * @param log           the log to use
+   * @param vars          the environment variables to use
+   * @return the python session
+   * @throws HopException if a problem occurs
+   */
+  public static PythonSession acquirePySession( Object requester, String pythonCommand, String serverID,
+      ILogChannel log, IVariables vars ) throws HopException {
+
+    if ( pythonCommand != null ) {
+      pythonCommand = vars.environmentSubstitute( pythonCommand );
+    }
+    if ( serverID != null ) {
+      serverID = vars.environmentSubstitute( serverID );
+    }
+    String
+        pyCommand =
+        pythonCommand != null && pythonCommand.length() > 0 && !pythonCommand.equalsIgnoreCase( "default" ) ?
+            pythonCommand : null;
+    String sID = serverID != null && serverID.length() > 0 && !serverID.equalsIgnoreCase( "none" ) ? serverID : null;
+
+    if ( pyCommand == null ) {
+      return acquirePySession( requester, log, vars );
+    }
+
+    PythonSession session = null;
+    try {
+      session = PythonSession.acquireSession( pyCommand, sID, requester );
+    } catch ( SessionException e ) {
+      throw new HopException( e );
+    }
+    session.setLog( log );
+    return session;
   }
 }
