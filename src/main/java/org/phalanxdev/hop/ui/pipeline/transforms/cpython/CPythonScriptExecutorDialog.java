@@ -80,7 +80,7 @@ import org.phalanxdev.python.PythonSession;
 /**
  * Dialog for the CPythonScriptExecutor step
  *
- * @author Mark Hall (mhall{[at]}waikato{[dot]}ac{[dot]}nz)
+ * @author Mark Hall (mhall{[at]}phalanxdev{[dot]}com)
  */
 public class CPythonScriptExecutorDialog extends BaseTransformDialog implements ITransformDialog {
 

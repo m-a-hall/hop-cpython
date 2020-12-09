@@ -58,7 +58,7 @@ import java.util.List;
 /**
  * Meta class for the CPythonScriptExecutor step
  *
- * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
+ * @author Mark Hall (mhall{[at]}phalanxdev{[dot]}com)
  */
 @Transform(id = "CPythonScriptExecutor", image = "pylogo.png", name = "CPython Script Executor", description = "Executes a python script", categoryDescription = "Statistics")
 public class CPythonScriptExecutorMeta extends BaseTransformMeta implements

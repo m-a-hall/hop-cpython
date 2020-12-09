@@ -58,7 +58,7 @@ import org.phalanxdev.python.SessionException;
 /**
  * Data class for the CPythonScriptExecutor step
  *
- * @author Mark Hall (mhall{[at]}pentaho{[dot]}com)
+ * @author Mark Hall (mhall{[at]}phalanxdev{[dot]}com)
  */
 public class CPythonScriptExecutorData extends BaseTransformData implements ITransformData {
 
