@@ -490,11 +490,11 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
       PythonSession.RowMetaAndRows outputMeta = null;
       PythonSession session = null;
       try {
-        String varToGet = vars.environmentSubstitute( cPythonScriptExecutorMeta.getPythonVariablesToGet().get( 0 ) );
+        String varToGet = vars.resolve( cPythonScriptExecutorMeta.getPythonVariablesToGet().get( 0 ) );
 
         String script = cPythonScriptExecutorMeta.getScript();
         if ( cPythonScriptExecutorMeta.getLoadScriptAtRuntime() ) {
-          String fileName = vars.environmentSubstitute( cPythonScriptExecutorMeta.getScriptToLoad() );
+          String fileName = vars.resolve( cPythonScriptExecutorMeta.getScriptToLoad() );
           if ( org.apache.hop.core.util.Utils.isEmpty( fileName ) ) {
             throw new HopException(
                 BaseMessages.getString( PKG, "CPythonScriptExecutorData.Error.ScriptFileDoesNotExist", fileName ) );
@@ -508,7 +508,7 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
           throw new HopException(
               BaseMessages.getString( PKG, "CPythonScriptExecutorData.Error.CantDetermineOutputMeta" ) );
         }
-        script = vars.environmentSubstitute( script );
+        script = vars.resolve( script );
 
         if ( inputMetas != null && inputMetas.size() != frameNames.size() ) {
           throw new HopException(
@@ -527,7 +527,7 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
         if ( inputMetas != null ) {
           for ( int i = 0; i < inputMetas.size(); i++ ) {
             IRowMeta currentMeta = inputMetas.get( i );
-            String currentFrameName = vars.environmentSubstitute( frameNames.get( i ) );
+            String currentFrameName = vars.resolve( frameNames.get( i ) );
             List<Object[]> randomRow = generateRandomRows( currentMeta, r );
             randomRows.add( randomRow );
             session.rowsToPythonDataFrame( currentMeta, randomRow, currentFrameName );
@@ -615,13 +615,13 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
       ILogChannel log ) throws HopException {
     // check python availablity
     if ( pythonCommand != null ) {
-      pythonCommand = vars.environmentSubstitute( pythonCommand );
+      pythonCommand = vars.resolve( pythonCommand );
     }
     if ( pyPathEntries != null ) {
-      pyPathEntries = vars.environmentSubstitute( pyPathEntries );
+      pyPathEntries = vars.resolve( pyPathEntries );
     }
     if ( serverID != null ) {
-      serverID = vars.environmentSubstitute( serverID );
+      serverID = vars.resolve( serverID );
     }
     String
         pyCommand =
@@ -697,10 +697,10 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
   protected static void releasePySession( Object requester, String pythonCommand, String serverID, IVariables vars )
       throws HopException {
     if ( pythonCommand != null ) {
-      pythonCommand = vars.environmentSubstitute( pythonCommand );
+      pythonCommand = vars.resolve( pythonCommand );
     }
     if ( serverID != null ) {
-      serverID = vars.environmentSubstitute( serverID );
+      serverID = vars.resolve( serverID );
     }
     String
         pyCommand =
@@ -737,10 +737,10 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
       ILogChannel log, IVariables vars ) throws HopException {
 
     if ( pythonCommand != null ) {
-      pythonCommand = vars.environmentSubstitute( pythonCommand );
+      pythonCommand = vars.resolve( pythonCommand );
     }
     if ( serverID != null ) {
-      serverID = vars.environmentSubstitute( serverID );
+      serverID = vars.resolve( serverID );
     }
     String
         pyCommand =

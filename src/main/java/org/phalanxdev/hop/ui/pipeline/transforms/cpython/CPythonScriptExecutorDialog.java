@@ -30,6 +30,7 @@ import org.apache.hop.core.row.IRowMeta;
 import org.apache.hop.core.row.IValueMeta;
 import org.apache.hop.core.row.RowMeta;
 import org.apache.hop.core.row.value.ValueMetaFactory;
+import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.i18n.BaseMessages;
 import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransformMeta;
@@ -153,10 +154,24 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     }
   };
 
-  public CPythonScriptExecutorDialog( Shell parent, Object inMeta, PipelineMeta tr, String sname ) {
-    super( parent, (BaseTransformMeta) inMeta, tr, sname );
+  public CPythonScriptExecutorDialog( Shell parent, IVariables variables, Object inMeta, PipelineMeta tr, String sname ) {
+    super( parent, variables, (BaseTransformMeta) inMeta, tr, sname );
 
     m_inputMeta = (CPythonScriptExecutorMeta) inMeta;
+    m_originalMeta = (CPythonScriptExecutorMeta) m_inputMeta.clone();
+  }
+
+  public CPythonScriptExecutorDialog(Shell parent, IVariables variables, BaseTransformMeta baseTransformMeta,
+      PipelineMeta pipelineMeta, String transformName) {
+    super(parent, variables, baseTransformMeta, pipelineMeta, transformName);
+    m_inputMeta = (CPythonScriptExecutorMeta) baseTransformMeta;
+    m_originalMeta = (CPythonScriptExecutorMeta) m_inputMeta.clone();
+  }
+
+  public CPythonScriptExecutorDialog(Shell parent, int nr, IVariables variables, Object in, PipelineMeta tr ) {
+    super(parent, nr, variables, (BaseTransformMeta) in, tr);
+
+    m_inputMeta = (CPythonScriptExecutorMeta) in;
     m_originalMeta = (CPythonScriptExecutorMeta) m_inputMeta.clone();
   }
 
@@ -270,7 +285,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     if ( !PythonSession.pythonAvailable() ) {
       // try initializing
       try {
-        if ( !PythonSession.initSession( "python", pipelineMeta, log ) ) {
+        if ( !PythonSession.initSession( "python", variables, log ) ) {
           String envEvalResults = PythonSession.getPythonEnvCheckResults();
           logError(
               "Was unable to start the python environment:\n\n" + ( envEvalResults != null ? envEvalResults : "" ) );
@@ -320,7 +335,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     }
 
     wtvInputFrames =
-        new TableView( pipelineMeta, wcConfig, SWT.FULL_SELECTION | SWT.MULTI, colinf, 1, simpleModifyListener, props );
+        new TableView( variables, wcConfig, SWT.FULL_SELECTION | SWT.MULTI, colinf, 1, simpleModifyListener, props );
     fd = new FormData();
     fd.top = new FormAttachment( lastControl, MARGIN );
     fd.bottom = new FormAttachment( 100, -MARGIN * 2 );
@@ -387,7 +402,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
         FileDialog dialog = new FileDialog( shell, SWT.OPEN );
 
         if ( !org.apache.hop.core.util.Utils.isEmpty( wtvScriptLocation.getText() ) ) {
-          dialog.setFileName( pipelineMeta.environmentSubstitute( wtvScriptLocation.getText() ) );
+          dialog.setFileName( variables.resolve( wtvScriptLocation.getText() ) );
         }
 
         if ( dialog.open() != null ) {
@@ -397,7 +412,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
       }
     } );
 
-    wtvScriptLocation = new TextVar( pipelineMeta, wcScript, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wtvScriptLocation = new TextVar( variables, wcScript, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wtvScriptLocation );
     fd = new FormData();
     fd.left = new FormAttachment( wlScriptLocation, MARGIN );
@@ -416,7 +431,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     lastControl = wlScript;
 
     wstcScriptEditor =
-        new StyledTextComp( pipelineMeta, wcScript, SWT.MULTI | SWT.LEFT | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL,
+        new StyledTextComp( variables, wcScript, SWT.MULTI | SWT.LEFT | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL,
             "" );
     props.setLook( wstcScriptEditor, Props.WIDGET_STYLE_FIXED );
 
@@ -448,7 +463,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     fd.bottom = new FormAttachment( wbContinueOnUnsetVars, -MARGIN );
     wlPyVarsToGet.setLayoutData( fd );
 
-    wtvPyVarsToGet = new TextVar( pipelineMeta, wcScript, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+    wtvPyVarsToGet = new TextVar( variables, wcScript, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
     props.setLook( wtvPyVarsToGet );
     fd = new FormData();
     fd.left = new FormAttachment( wlPyVarsToGet, MARGIN );
@@ -584,7 +599,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
                 false ) };
 
     wtvOutputFields =
-        new TableView( pipelineMeta, wcFields, SWT.FULL_SELECTION | SWT.MULTI, colinf2, 1, simpleModifyListener,
+        new TableView( variables, wcFields, SWT.FULL_SELECTION | SWT.MULTI, colinf2, 1, simpleModifyListener,
             props );
     fd = new FormData();
     fd.top = new FormAttachment( lastControl, MARGIN * 2 );
@@ -633,7 +648,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
       if ( frameNames.size() > 0 && infoStreams.size() > 0 ) {
 
         for ( int i = 0; i < infoStreams.size(); i++ ) {
-          incomingMetas.add( pipelineMeta.getTransformFields( infoStreams.get( i ).getTransformMeta() ) );
+          incomingMetas.add( pipelineMeta.getTransformFields( variables, infoStreams.get( i ).getTransformMeta() ) );
         }
       }
 
@@ -647,7 +662,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
       if ( buttonID == SWT.YES ) {
         IRowMeta rowMeta = new RowMeta();
         meta.getFields( rowMeta, "bogus", incomingMetas.toArray( new IRowMeta[incomingMetas.size()] ), null,
-            pipelineMeta, null );
+            variables, null );
 
         wtvOutputFields.clearAll();
         for ( int i = 0; i < rowMeta.size(); i++ ) {
@@ -675,7 +690,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     fd.top = new FormAttachment( lastControl, MARGIN );
     wlRowsToProcess.setLayoutData( getFirstLabelFormData() );
 
-    wcvRowsToProcess = new ComboVar( pipelineMeta, wgRowHandling, SWT.BORDER | SWT.READ_ONLY );
+    wcvRowsToProcess = new ComboVar( variables, wgRowHandling, SWT.BORDER | SWT.READ_ONLY );
     props.setLook( wcvRowsToProcess );
     wcvRowsToProcess.setEditable( false );
     wcvRowsToProcess.addSelectionListener( new SelectionAdapter() {
@@ -710,7 +725,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     props.setLook( wlRowsToProcessSize );
     wlRowsToProcessSize.setLayoutData( getSecondLabelFormData( wcvRowsToProcess ) );
 
-    wtvRowsToProcessSize = new TextVar( pipelineMeta, wgRowHandling, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+    wtvRowsToProcessSize = new TextVar( variables, wgRowHandling, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
     props.setLook( wtvRowsToProcessSize );
     wtvRowsToProcessSize.addModifyListener( simpleModifyListener );
     wtvRowsToProcessSize.setLayoutData( getSecondPromptFormData( wlRowsToProcessSize ) );
@@ -757,7 +772,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     props.setLook( wlReservoirSamplingSize );
     wlReservoirSamplingSize.setLayoutData( getSecondLabelFormData( wbReservoirSampling ) );
 
-    wtvReservoirSamplingSize = new TextVar( pipelineMeta, wgRowHandling, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wtvReservoirSamplingSize = new TextVar( variables, wgRowHandling, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     wtvReservoirSamplingSize
         .setToolTipText( BaseMessages.getString( PKG, "CPythonScriptExecutorDialog.ReservoirSampling.Size.TipText" ) );
     props.setLook( wtvReservoirSamplingSize );
@@ -778,7 +793,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     props.setLook( wlRandomSeed );
     wlRandomSeed.setLayoutData( getFirstLabelFormData() );
 
-    wtvRandomSeed = new TextVar( pipelineMeta, wgRowHandling, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
+    wtvRandomSeed = new TextVar( variables, wgRowHandling, SWT.SINGLE | SWT.LEAD | SWT.BORDER );
     props.setLook( wtvRandomSeed );
     wtvRandomSeed.addModifyListener( simpleModifyListener );
     wtvRandomSeed.setLayoutData( getFirstPromptFormData( wlRandomSeed ) );
@@ -890,7 +905,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     props.setLook( wlPythonCommand );
     wlPythonCommand.setLayoutData( getFirstLabelFormData() );
 
-    wtvPythonCommand = new TextVar( pipelineMeta, wgOptions, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wtvPythonCommand = new TextVar( variables, wgOptions, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wtvPythonCommand );
     FormData fd = getFirstPromptFormData( wlPythonCommand );
     fd.right = new FormAttachment( 95, 0 );
@@ -903,7 +918,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     props.setLook( wlPyPathEntries );
     wlPyPathEntries.setLayoutData( getFirstLabelFormData() );
 
-    wtvPyPathEntries = new TextVar( pipelineMeta, wgOptions, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wtvPyPathEntries = new TextVar( variables, wgOptions, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wtvPyPathEntries );
     fd = getFirstPromptFormData( wlPyPathEntries );
     fd.right = new FormAttachment( 95, 0 );
@@ -916,7 +931,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     props.setLook( wlPyServerID );
     wlPyServerID.setLayoutData( getFirstLabelFormData() );
 
-    wtvPyServerID = new TextVar( pipelineMeta, wgOptions, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
+    wtvPyServerID = new TextVar( variables, wgOptions, SWT.SINGLE | SWT.LEFT | SWT.BORDER );
     props.setLook( wtvPyServerID );
     fd = getFirstPromptFormData( wlPyServerID );
     fd.right = new FormAttachment( 95, 0 );
@@ -960,7 +975,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
 
         try {
           for ( int i = 0; i < infoStreams.size(); i++ ) {
-            incomingMetas.addRowMeta( pipelineMeta.getTransformFields( infoStreams.get( i ).getTransformMeta() ) );
+            incomingMetas.addRowMeta( pipelineMeta.getTransformFields( variables, infoStreams.get( i ).getTransformMeta() ) );
           }
         } catch ( HopException e ) {
           new ErrorDialog( shell, transformName,

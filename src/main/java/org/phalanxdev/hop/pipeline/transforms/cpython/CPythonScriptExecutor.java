@@ -94,7 +94,7 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
         if ( m_data.m_script == null ) {
           // loading from a file overrides any user-supplied script
           if ( m_meta.getLoadScriptAtRuntime() ) {
-            String scriptFile = environmentSubstitute( m_meta.getScriptToLoad() );
+            String scriptFile = resolve( m_meta.getScriptToLoad() );
             if ( org.apache.hop.core.util.Utils.isEmpty( scriptFile ) ) {
               throw new HopException(
                   BaseMessages.getString( PKG, "CPythonScriptExecutor.Error.NoScriptFileNameProvided" ) );
@@ -138,7 +138,7 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
         m_noInputRowSets = true;
       } else {
         String rowsToProcess = m_meta.getRowsToProcess();
-        String rowsToProcessSize = environmentSubstitute( m_meta.getRowsToProcessSize() );
+        String rowsToProcessSize = resolve( m_meta.getRowsToProcessSize() );
 
         if ( rowsToProcess.equals( BaseMessages
             .getString( PKG, "CPythonScriptExecutorDialog.NumberOfRowsToProcess.Dropdown.BatchEntry.Label" ) ) ) {
@@ -150,7 +150,7 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
           m_data.m_batchSize = 0;
         }
 
-        String reservoirSamplersSize = environmentSubstitute( m_meta.getReservoirSamplingSize() );
+        String reservoirSamplersSize = resolve( m_meta.getReservoirSamplingSize() );
         boolean doingReservoirSampling = m_meta.getDoingReservoirSampling();
         if ( doingReservoirSampling ) {
           m_data.m_reservoirSamplersSize =
@@ -166,7 +166,7 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
           }
         } else {
           m_data.m_reservoirSamplers = new ArrayList<ReservoirSamplingData>();
-          String seed = environmentSubstitute( m_meta.getRandomSeed() );
+          String seed = resolve( m_meta.getRandomSeed() );
           for ( int i = 0; i < infoStreams.size(); i++ ) {
             ReservoirSamplingData rs = new ReservoirSamplingData();
             rs.setProcessingMode( ReservoirSamplingData.PROC_MODE.SAMPLING );
@@ -189,7 +189,7 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
           IRowSet current = findInputRowSet( infoStreams.get( i ).getSubject().toString() );
           IRowMeta
               associatedRowMeta =
-              getPipelineMeta().getTransformFields( infoStreams.get( i ).getSubject().toString() );
+              getPipelineMeta().getTransformFields( variables, infoStreams.get( i ).getSubject().toString() );
 
           if ( current == null ) {
             throw new HopException( BaseMessages
@@ -269,9 +269,9 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
         boolean framesAdded = false;
         for ( int i = 0; i < m_data.m_frameBuffers.size(); i++ ) {
           List<Object[]> frameBuffer = m_data.m_frameBuffers.get( i );
-          if ( frameBuffer.size() == m_data.m_batchSize || ( allDone && frameBuffer.size() > 0 ) ) {
+          if ( (frameBuffer.size() == m_data.m_batchSize && frameBuffer.size() > 0) || ( allDone && frameBuffer.size() > 0 ) ) {
             // push buffer into python and process result
-            String frameName = environmentSubstitute( m_meta.getFrameNames().get( i ) );
+            String frameName = resolve( m_meta.getFrameNames().get( i ) );
 
             logDetailed( BaseMessages.getString( PKG, "CPythonScriptExecutor.Message.PushingBatchIntoPandasDataFrame",
                 //$NON-NLS-1$
@@ -306,7 +306,7 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
         logDetailed( BaseMessages.getString( PKG, "CPythonScriptExecutor.Message.RetrievingReservoirs" ) );
         for ( int j = 0; j < m_data.m_reservoirSamplers.size(); j++ ) {
           ReservoirSamplingData reservoirSamplers = m_data.m_reservoirSamplers.get( j );
-          String frameName = environmentSubstitute( m_meta.getFrameNames().get( j ) );
+          String frameName = resolve( m_meta.getFrameNames().get( j ) );
           List<Object[]> sample = reservoirSamplers.getSample();
           CPythonScriptExecutorData.pruneNullRowsFromSample( sample );
 
@@ -460,7 +460,7 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
   }
 
   protected void executeScript( PythonSession session, String pyScript ) throws HopException {
-    List<String> outAndErr = session.executeScript( environmentSubstitute( pyScript ) );
+    List<String> outAndErr = session.executeScript( resolve( pyScript ) );
 
     // TODO could add another setting to allow the user to specify if the step
     // should try to continue after a script execution error. Note that ServerUtils
