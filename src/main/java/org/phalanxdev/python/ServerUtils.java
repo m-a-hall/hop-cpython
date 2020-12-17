@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+
 import org.phalanxdev.python.PythonSession.PythonVariableType;
 import org.phalanxdev.python.PythonSession.RowMetaAndRows;
 
@@ -73,6 +74,7 @@ public class ServerUtils {
   protected static final String RESPONSE_KEY = "response";
   protected static final String OK_KEY = "ok";
   protected static final String ERROR_MESSAGE_KEY = "error_message";
+  protected static final String PING_KEY = "ping";
   protected static final String VARIABLE_NAME_KEY = "variable_name";
   protected static final String VARIABLE_IS_SET_KEY = "variable_is_set";
   protected static final String VARIABLE_EXISTS_KEY = "variable_exists";
@@ -193,8 +195,8 @@ public class ServerUtils {
    * @return true if the named variable is set in python
    * @throws HopException if a problem occurs
    */
-  @SuppressWarnings( "unchecked" ) protected static boolean checkIfPythonVariableIsSet( ILogChannel log,
-      String varName, InputStream inputStream, OutputStream outputStream ) throws HopException {
+  @SuppressWarnings( "unchecked" ) protected static boolean checkIfPythonVariableIsSet( ILogChannel log, String varName,
+      InputStream inputStream, OutputStream outputStream ) throws HopException {
 
     boolean debug = log == null || log.isDebug();
     ObjectMapper mapper = new ObjectMapper();
@@ -239,6 +241,67 @@ public class ServerUtils {
   }
 
   /**
+   * Ping the server. If still functioning, the server will ACK the ping and this method will return
+   * true. Otherwise, it returns false.
+   *
+   * @param pythonServerIDString a String identifying the server that we are pinging
+   * @param log log to use
+   * @param inputStream input stream to use
+   * @param outputStream output stream to use
+   * @return true if the server is alive and acknowledges the ping
+   */
+  protected static boolean pingServer( String pythonServerIDString, ILogChannel log, InputStream inputStream,
+      OutputStream outputStream ) {
+    boolean debug = log == null || log.isDebug();
+    ObjectMapper mapper = new ObjectMapper();
+    Map<String, Object> command = new HashMap<String, Object>();
+    command.put( COMMAND_KEY, PING_KEY );
+
+    if ( inputStream != null && outputStream != null ) {
+      try {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        mapper.writeValue( bos, command );
+        byte[] bytes = bos.toByteArray();
+
+        if ( debug ) {
+          outputCommandDebug( command, log );
+        }
+
+        // write the command
+        writeDelimitedToOutputStream( bytes, outputStream );
+
+        bytes = readDelimitedFromInputStream( inputStream );
+        Map<String, Object> ack = mapper.readValue( bytes, Map.class );
+        // We will either get a response or we won't (i.e. some kind of comms error will result
+        // from a dead/unresponsive server
+        if ( !ack.get( RESPONSE_KEY ).toString().equals( OK_KEY ) ) {
+          if ( log != null ) {
+            log.logError( "Unable to ping python server " + pythonServerIDString );
+          } else {
+            System.err.println( "Unable to ping python server " + pythonServerIDString );
+          } return false;
+        } return true;
+      } catch ( Exception ex ) {
+        if ( log != null ) {
+          log.logError( "Unable to ping python server " + pythonServerIDString, ex );
+        } else {
+          ex.printStackTrace();
+        }
+      }
+    } else {
+      try {
+        outputCommandDebug( command, log );
+      } catch ( HopException e ) {
+        if ( log != null ) {
+          log.logDebug( e.getMessage() );
+        } else {
+          e.printStackTrace();
+        }
+      }
+    } return false;
+  }
+
+  /**
    * Receive the value of a variable in pickled or plain string form. If getting
    * a pickled variable, then in python 2 this is the pickled string; in python
    * 3 pickle.dumps returns a byte object, so the value is converted to base64
@@ -255,8 +318,7 @@ public class ServerUtils {
    * @throws HopException if a problem occurs
    */
   @SuppressWarnings( "unchecked" ) protected static String receivePickledVariableValue( String varName,
-      OutputStream outputStream, InputStream inputStream, boolean plainString, ILogChannel log )
-      throws HopException {
+      OutputStream outputStream, InputStream inputStream, boolean plainString, ILogChannel log ) throws HopException {
 
     boolean debug = log == null || log.isDebug();
     String objectValue = "";
@@ -511,8 +573,7 @@ public class ServerUtils {
 
         String serverAck = receiveServerAck( inputStream );
         if ( serverAck != null ) {
-          throw new HopException(
-              BaseMessages.getString( PKG, "ServerUtils.Error.TransferOfRowsFailed" ) + serverAck );
+          throw new HopException( BaseMessages.getString( PKG, "ServerUtils.Error.TransferOfRowsFailed" ) + serverAck );
         }
       } catch ( IOException ex ) {
         throw new HopException( ex );
@@ -533,9 +594,9 @@ public class ServerUtils {
    * @return the data frame converted to rows along with its associated row metadata
    * @throws HopException if a problem occurs
    */
-  @SuppressWarnings( "unchecked" ) protected static RowMetaAndRows receiveRowsFromPandasDataFrame(
-      ILogChannel log, String frameName, boolean includeRowIndex, OutputStream outputStream,
-      InputStream inputStream ) throws HopException {
+  @SuppressWarnings( "unchecked" ) protected static RowMetaAndRows receiveRowsFromPandasDataFrame( ILogChannel log,
+      String frameName, boolean includeRowIndex, OutputStream outputStream, InputStream inputStream )
+      throws HopException {
 
     boolean debug = log == null || log.isDebug();
     ObjectMapper mapper = new ObjectMapper();
@@ -1118,8 +1179,7 @@ public class ServerUtils {
    * @param command the command to print out
    * @param log     optional log
    */
-  protected static void outputCommandDebug( Map<String, Object> command, ILogChannel log )
-      throws HopException {
+  protected static void outputCommandDebug( Map<String, Object> command, ILogChannel log ) throws HopException {
     ObjectMapper mapper = new ObjectMapper();
     StringWriter sw = new StringWriter();
     try {
