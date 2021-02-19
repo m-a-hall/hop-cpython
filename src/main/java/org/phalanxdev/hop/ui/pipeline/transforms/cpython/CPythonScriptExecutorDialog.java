@@ -432,7 +432,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
 
     wstcScriptEditor =
         new StyledTextComp( variables, wcScript, SWT.MULTI | SWT.LEFT | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL,
-            "" );
+            true, false );
     props.setLook( wstcScriptEditor, Props.WIDGET_STYLE_FIXED );
 
     wlContinueOnUnsetVars = new Label( wcScript, SWT.RIGHT );
@@ -1105,10 +1105,10 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     wstcScriptEditor.setEnabled( !wbLoadScriptFile.getSelection() );
     if ( wbLoadScriptFile.getSelection() ) {
       wtvScriptLocation.setEditable( true );
-      wstcScriptEditor.getStyledText().setBackground( GuiResource.getInstance().getColorDemoGray() );
+      wstcScriptEditor.getTextWidget().setBackground( GuiResource.getInstance().getColorDemoGray() );
     } else {
       wtvScriptLocation.setEditable( false );
-      wstcScriptEditor.getStyledText().setBackground( GuiResource.getInstance().getColorWhite() );
+      wstcScriptEditor.getTextWidget().setBackground( GuiResource.getInstance().getColorWhite() );
     }
     wbScriptBrowse.setEnabled( wbLoadScriptFile.getSelection() );
 
