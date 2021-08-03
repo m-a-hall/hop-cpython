@@ -91,6 +91,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
 
   private CTabItem wctiConfig, wctiScript, wctiFields;
   private Composite wcConfig, wcScript, wcFields;
+  private SelectionAdapter lsDef;
 
   /**
    * Configure tab

@@ -173,7 +173,7 @@ step and score the incoming data</note>
     </hop>
     <hop>
       <from>CPython Script Executor 3</from>
-      <to>Modified Java Script Value</to>
+      <to>JavaScript - Save visualizations as PNG files</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -198,6 +198,9 @@ step and score the incoming data</note>
       <method>none</method>
       <schema_name/>
     </partitioning>
+    <python_command/>
+    <python_path_entries/>
+    <python_server_id/>
     <rows_to_process>ALL</rows_to_process>
     <rows_to_process_size/>
     <reservoir_sampling>N</reservoir_sampling>
@@ -260,6 +263,9 @@ quant = iris.quantile([0.25,0.5,0.75])
       <method>none</method>
       <schema_name/>
     </partitioning>
+    <python_command/>
+    <python_path_entries/>
+    <python_server_id/>
     <rows_to_process>ALL</rows_to_process>
     <rows_to_process_size/>
     <reservoir_sampling>N</reservoir_sampling>
@@ -323,6 +329,9 @@ pdf=DataFrame(x_r)
       <method>none</method>
       <schema_name/>
     </partitioning>
+    <python_command/>
+    <python_path_entries/>
+    <python_server_id/>
     <rows_to_process>ALL</rows_to_process>
     <rows_to_process_size/>
     <reservoir_sampling>N</reservoir_sampling>
@@ -399,6 +408,9 @@ radviz(iris, 'class')
       <method>none</method>
       <schema_name/>
     </partitioning>
+    <python_command/>
+    <python_path_entries/>
+    <python_server_id/>
     <rows_to_process>ALL</rows_to_process>
     <rows_to_process_size/>
     <reservoir_sampling>N</reservoir_sampling>
@@ -481,6 +493,9 @@ joblib.dump(dt,filename)
       <method>none</method>
       <schema_name/>
     </partitioning>
+    <python_command/>
+    <python_path_entries/>
+    <python_server_id/>
     <rows_to_process>ALL</rows_to_process>
     <rows_to_process_size/>
     <reservoir_sampling>N</reservoir_sampling>
@@ -647,7 +662,7 @@ p = DataFrame(preds, columns=['predicted_class_Iris-setosa','predicted_class_Iri
     </GUI>
   </transform>
   <transform>
-    <name>Modified Java Script Value</name>
+    <name>JavaScript - Save visualizations as PNG files</name>
     <type>ScriptValueMod</type>
     <description/>
     <distribute>Y</distribute>
