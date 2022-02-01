@@ -60,7 +60,7 @@ import java.util.List;
  *
  * @author Mark Hall (mhall{[at]}phalanxdev{[dot]}com)
  */
-@Transform(id = "CPythonScriptExecutor", image = "pylogo.png", name = "CPython Script Executor", description = "Executes a python script", categoryDescription = "Statistics")
+@Transform(id = "CPythonScriptExecutor", image = "pylogo.svg", name = "CPython Script Executor", description = "Executes a python script", categoryDescription = "Statistics")
 public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
     ITransformMeta<CPythonScriptExecutor, CPythonScriptExecutorData> {
 
