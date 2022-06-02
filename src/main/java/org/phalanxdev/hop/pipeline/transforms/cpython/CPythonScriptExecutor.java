@@ -37,7 +37,7 @@ import org.apache.hop.pipeline.PipelineMeta;
 import org.apache.hop.pipeline.transform.BaseTransform;
 import org.apache.hop.pipeline.transform.ITransform;
 import org.apache.hop.pipeline.transform.TransformMeta;
-import org.apache.hop.pipeline.transform.errorhandling.IStream;
+import org.apache.hop.pipeline.transform.stream.IStream;
 import org.phalanxdev.hop.pipeline.transforms.reservoirsampling.ReservoirSamplingData;
 import org.phalanxdev.python.PythonSession;
 
@@ -58,8 +58,7 @@ import org.phalanxdev.python.PythonSession;
  *
  * @author Mark Hall (mhall{[at]}phalanxdev{[dot]}com)
  */
-public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMeta, CPythonScriptExecutorData>
-    implements ITransform<CPythonScriptExecutorMeta, CPythonScriptExecutorData> {
+public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMeta, CPythonScriptExecutorData> {
 
   private static Class<?> PKG = CPythonScriptExecutorMeta.class;
 
