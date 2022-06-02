@@ -44,10 +44,10 @@ import org.apache.hop.pipeline.transform.ITransformIOMeta;
 import org.apache.hop.pipeline.transform.ITransformMeta;
 import org.apache.hop.pipeline.transform.TransformIOMeta;
 import org.apache.hop.pipeline.transform.TransformMeta;
-import org.apache.hop.pipeline.transform.errorhandling.IStream;
-import org.apache.hop.pipeline.transform.errorhandling.IStream.StreamType;
-import org.apache.hop.pipeline.transform.errorhandling.Stream;
-import org.apache.hop.pipeline.transform.errorhandling.StreamIcon;
+import org.apache.hop.pipeline.transform.stream.IStream;
+import org.apache.hop.pipeline.transform.stream.IStream.StreamType;
+import org.apache.hop.pipeline.transform.stream.Stream;
+import org.apache.hop.pipeline.transform.stream.StreamIcon;
 import org.phalanxdev.hop.ui.pipeline.transforms.cpython.CPythonScriptExecutorDialog;
 import org.phalanxdev.python.PythonSession;
 import org.w3c.dom.Node;
@@ -61,8 +61,7 @@ import java.util.List;
  * @author Mark Hall (mhall{[at]}phalanxdev{[dot]}com)
  */
 @Transform(id = "CPythonScriptExecutor", image = "pylogo.svg", name = "CPython Script Executor", description = "Executes a python script", categoryDescription = "Statistics")
-public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
-    ITransformMeta<CPythonScriptExecutor, CPythonScriptExecutorData> {
+public class CPythonScriptExecutorMeta extends BaseTransformMeta<CPythonScriptExecutor, CPythonScriptExecutorData> {
 
   private static Class<?> PKG = CPythonScriptExecutor.class;
 
@@ -642,19 +641,6 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta implements
     m_pyVarsToGet = new ArrayList<>();
     m_script = BaseMessages
         .getString(PKG, "CPythonScriptExecutorMeta.InitialScriptText"); //$NON-NLS-1$
-  }
-
-  @Override
-  public ITransform createTransform(TransformMeta transformMeta,
-      CPythonScriptExecutorData stepDataInterface, int i, PipelineMeta pipelineMeta,
-      Pipeline trans) {
-    return new CPythonScriptExecutor(transformMeta, this, stepDataInterface, i, pipelineMeta,
-        trans);
-  }
-
-  @Override
-  public CPythonScriptExecutorData getTransformData() {
-    return new CPythonScriptExecutorData();
   }
 
   protected String varListToString() {
