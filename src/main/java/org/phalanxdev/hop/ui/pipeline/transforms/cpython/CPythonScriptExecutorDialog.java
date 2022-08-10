@@ -1109,7 +1109,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
       wstcScriptEditor.getTextWidget().setBackground( GuiResource.getInstance().getColorDemoGray() );
     } else {
       wtvScriptLocation.setEditable( false );
-      wstcScriptEditor.getTextWidget().setBackground( GuiResource.getInstance().getColorWhite() );
+      props.setLook(wstcScriptEditor, Props.WIDGET_STYLE_FIXED);
     }
     wbScriptBrowse.setEnabled( wbLoadScriptFile.getSelection() );
 
