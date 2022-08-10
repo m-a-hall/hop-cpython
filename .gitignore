@@ -15,3 +15,7 @@ bin
 .DS_Store
 routes.yml
 *.tgf
+out/
+sample/*.png
+sample/*.sklearn
+
