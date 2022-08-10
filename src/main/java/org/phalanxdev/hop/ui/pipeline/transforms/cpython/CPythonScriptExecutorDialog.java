@@ -45,6 +45,7 @@ import org.apache.hop.ui.core.widget.StyledTextComp;
 import org.apache.hop.ui.core.widget.TableView;
 import org.apache.hop.ui.core.widget.TextVar;
 import org.apache.hop.ui.pipeline.transform.BaseTransformDialog;
+import org.apache.hop.ui.util.EnvironmentUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -219,7 +220,9 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
 
     wctfContainer = new CTabFolder( shell, SWT.BORDER );
     props.setLook( wctfContainer, Props.WIDGET_STYLE_TAB );
-    wctfContainer.setSimple( false );
+    if (!EnvironmentUtils.getInstance().isWeb()) {
+      wctfContainer.setSimple(false);
+    }
 
     addConfigureTab();
     addScriptTab();
