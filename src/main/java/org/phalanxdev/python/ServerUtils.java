@@ -23,6 +23,7 @@
 package org.phalanxdev.python;
 
 import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.exception.HopValueException;
@@ -115,7 +116,7 @@ public class ServerUtils {
   /**
    * For parsing CSV rows from python
    */
-  protected static final CSVParser PARSER = new CSVParser( ',', '\'', '\\' );
+  protected static final CSVParser PARSER = new CSVParserBuilder().withSeparator(',').withQuoteChar('\'').withEscapeChar('\\').build();
 
   /**
    * Local time zone offset from UTC. Python converts millis since epoch into UTC-centered dates, unlike Java which
