@@ -8,7 +8,7 @@ Building
 The Hop CPython Plugin is built with Maven.
 
     $ git clone https://github.com/m-a-hall/hop-cpython.git
-    $ cd cpython
+    $ cd hop-cpython
     $ mvn clean install
 
 This will produce a plugin archive in target/hop-cpython-${version}.zip. This archive can then be extracted into your Hop plugin/transforms directory.
