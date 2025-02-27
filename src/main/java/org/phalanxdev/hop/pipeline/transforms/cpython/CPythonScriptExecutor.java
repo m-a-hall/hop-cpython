@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.collections4.Get;
 import org.apache.hop.core.IRowSet;
 import org.apache.hop.core.exception.HopException;
 import org.apache.hop.core.row.IRowMeta;
@@ -111,7 +112,7 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
 
         // check python availability
         CPythonScriptExecutorData
-            .initPython( m_meta.getPythonCommand(), m_meta.getPytServerID(), m_meta.getPyPathEntries(), this, log );
+            .initPython( m_meta.getPythonCommand(), m_meta.getPytServerID(), m_meta.getPyPathEntries(), this, getLogChannel() );
       } catch ( HopException ex ) {
         logError( ex.getMessage(), ex ); //$NON-NLS-1$
 
