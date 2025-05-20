@@ -33,7 +33,7 @@ import org.apache.hop.core.row.IValueMeta;
 import org.apache.hop.core.row.RowMeta;
 import org.apache.hop.core.row.value.ValueMetaFactory;
 import org.apache.hop.i18n.BaseMessages;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -686,7 +686,7 @@ public class ServerUtils {
         switch ( kettleMeta.getValueMeta( i ).getType() ) {
           case IValueMeta.TYPE_NUMBER:
             try {
-              row[i] = new Double( parsed[i] );
+              row[i] = Double.valueOf( parsed[i] );
             } catch ( NumberFormatException ex ) {
               throw new IOException( ex );
             }

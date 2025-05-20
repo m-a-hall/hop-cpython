@@ -13,6 +13,12 @@ The Hop CPython Plugin is built with Maven.
 
 This will produce a plugin archive in target/hop-cpython-${version}.zip. This archive can then be extracted into your Hop plugin/transforms directory.
 
+Architecture
+-----------
+The plugin uses a client-server architecture where the Hop pipeline (Java) communicates with a Python process via socket connections. The diagram below illustrates the communication flow:
+
+![Hop CPython Communication Flow](cpython-diagram.png)
+
 Further Reading
 ---------------
 You will need to have python installed on your machine. Either >= 2.7 in the 2.x version of python or 3.x. In addition, the following python packages are required:

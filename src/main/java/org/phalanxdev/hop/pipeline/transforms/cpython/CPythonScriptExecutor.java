@@ -111,7 +111,7 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
 
         // check python availability
         CPythonScriptExecutorData
-            .initPython( m_meta.getPythonCommand(), m_meta.getPytServerID(), m_meta.getPyPathEntries(), this, log );
+            .initPython( m_meta.getPythonCommand(), m_meta.getPytServerID(), m_meta.getPyPathEntries(), this, getLogChannel() );
       } catch ( HopException ex ) {
         logError( ex.getMessage(), ex ); //$NON-NLS-1$
 
