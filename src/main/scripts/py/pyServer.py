@@ -231,11 +231,18 @@ def send_response(response, isJson):
         response = json.dumps(response)
 
     if _global_python3 is True:
-        _global_connection.sendall(struct.pack('>L', len(response.encode('utf-8'))))
-        _global_connection.sendall(response.encode('utf-8'))
+        response_bytes = response.encode('utf-8')
+        _global_connection.sendall(struct.pack('>L', len(response_bytes)))
+        _global_connection.sendall(response_bytes)
     else:
-        _global_connection.sendall(struct.pack('>L', len(response)))
-        _global_connection.sendall(response)
+        # For Python 2, ensure we're sending the byte length, not string length
+        if isinstance(response, unicode):
+            response_bytes = response.encode('utf-8')
+        else:
+            # Ensure it's encoded as UTF-8 bytes
+            response_bytes = response.encode('utf-8') if isinstance(response, str) else response
+        _global_connection.sendall(struct.pack('>L', len(response_bytes)))
+        _global_connection.sendall(response_bytes)
 
 
 def receive_message(isJson):
