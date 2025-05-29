@@ -273,27 +273,31 @@ print(iris.head())
     <reservoir_sampling_seed>1</reservoir_sampling_seed>
     <include_input_as_output>N</include_input_as_output>
     <py_script>import matplotlib.pyplot as plt
-from pandas.plotting import scatter_matrix
-from pandas.plotting import andrews_curves
-from pandas.plotting import parallel_coordinates
-from pandas.plotting import radviz
+from pandas.plotting import scatter_matrix, andrews_curves, parallel_coordinates, radviz
 import numpy as np
 
-iris=py_data
+iris = py_data  # Ensure py_data is already defined
+
 # Summarize the input data
-summary=str(iris.describe(include='all'))
+summary = str(iris.describe(include='all'))
+
 # Scatter plot
-scatter = scatter_matrix(iris,figsize=(6,6),diagonal='kde')
-fig=scatter[0][0].get_figure()
+scatter = scatter_matrix(iris, figsize=(12, 12), diagonal='kde')
+fig = scatter[0][0].get_figure()
+fig.set_dpi(100)  # Set DPI to 100
+
 # Andrew's curves
-fig2=plt.figure()
+fig2 = plt.figure(figsize=(12, 12), dpi=100)
 andrews_curves(iris, 'class')
+
 # Parallel coordinates
-fig3=plt.figure()
+fig3 = plt.figure(figsize=(12, 12), dpi=100)
 parallel_coordinates(iris, 'class')
+
 # RadViz
-fig4=plt.figure()
+fig4 = plt.figure(figsize=(12, 12), dpi=100)
 radviz(iris, 'class')
+
 
 </py_script>
     <load_script_at_runtime>N</load_script_at_runtime>
@@ -351,12 +355,13 @@ radviz(iris, 'class')
 var FileOutputStream = java.io.FileOutputStream;
 var ImageIO = javax.imageio.ImageIO
 
-var filePrefix = substr(getVariable('Internal.Entry.Current.Folder',''), 7);
+var folder = substr(getVariable('Internal.Entry.Current.Folder',''), 7);
+var filePrefix = folder.endsWith('/') ? folder + 'output' : folder + '/output';
 
-var image1path = filePrefix + File.separator + 'pic1.png';
-var image2path = filePrefix + File.separator + 'pic2.png';
-var image3path = filePrefix + File.separator + 'pic3.png';
-var image4path = filePrefix + File.separator + 'pic4.png';
+var image1path = filePrefix + File.separator + '1_Iris_Scatter_Plot.png';
+var image2path = filePrefix + File.separator + '2_Iris_Andrews_Curve_Plot.png';
+var image3path = filePrefix + File.separator + '3_Iris_Parallel_Coordinates_Plot.png';
+var image4path = filePrefix + File.separator + '4_Iris_Radvis_Plot.png';
 
 ImageIO.write(fig,'png',new File(image1path));
 ImageIO.write(fig2,'png', new File(image2path));
@@ -647,7 +652,7 @@ joblib.dump(dt,filename)
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <filename>${Internal.Entry.Current.Folder}/iris.csv</filename>
+    <filename>${Internal.Entry.Current.Folder}/input/iris.csv</filename>
     <filename_field/>
     <rownum_field/>
     <include_filename>N</include_filename>
