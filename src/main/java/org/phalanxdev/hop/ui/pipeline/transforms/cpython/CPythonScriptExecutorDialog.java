@@ -41,8 +41,10 @@ import org.apache.hop.ui.core.dialog.ShowMessageDialog;
 import org.apache.hop.ui.core.gui.GuiResource;
 import org.apache.hop.ui.core.widget.ColumnInfo;
 import org.apache.hop.ui.core.widget.ComboVar;
+import org.apache.hop.ui.core.widget.ScriptStyledTextComp;
 import org.apache.hop.ui.core.widget.StyledTextComp;
 import org.apache.hop.ui.core.widget.TableView;
+import org.apache.hop.ui.core.widget.TextComposite;
 import org.apache.hop.ui.core.widget.TextVar;
 import org.apache.hop.ui.pipeline.transform.BaseTransformDialog;
 import org.apache.hop.ui.util.EnvironmentUtils;
@@ -116,7 +118,7 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
   private Label wlLoadScriptFile, wlScriptLocation, wlScript;
   private Button wbLoadScriptFile, wbScriptBrowse;
   private TextVar wtvScriptLocation;
-  private StyledTextComp wstcScriptEditor;
+  private TextComposite wstcScriptEditor;
 
   /**
    * Fields tab
@@ -434,9 +436,18 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     wlScript.setLayoutData( fd );
     lastControl = wlScript;
 
-    wstcScriptEditor =
-        new StyledTextComp( variables, wcScript, SWT.MULTI | SWT.LEFT | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL,
-            true, false );
+    // Use ScriptStyledTextComp for Python syntax highlighting in non-web environments
+    if (EnvironmentUtils.getInstance().isWeb()) {
+      wstcScriptEditor =
+          new StyledTextComp( variables, wcScript, SWT.MULTI | SWT.LEFT | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL,
+              true, false );
+    } else {
+      wstcScriptEditor =
+          new ScriptStyledTextComp( variables, wcScript, SWT.MULTI | SWT.LEFT | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL,
+              false );
+      // Enable Python syntax highlighting
+      ((ScriptStyledTextComp) wstcScriptEditor).addLineStyleListener("python");
+    }
     props.setLook( wstcScriptEditor, Props.WIDGET_STYLE_FIXED );
 
     wlContinueOnUnsetVars = new Label( wcScript, SWT.RIGHT );
@@ -1109,7 +1120,10 @@ public class CPythonScriptExecutorDialog extends BaseTransformDialog implements 
     wstcScriptEditor.setEnabled( !wbLoadScriptFile.getSelection() );
     if ( wbLoadScriptFile.getSelection() ) {
       wtvScriptLocation.setEditable( true );
-      wstcScriptEditor.getTextWidget().setBackground( GuiResource.getInstance().getColorDemoGray() );
+      // Handle both StyledTextComp and ScriptStyledTextComp cases
+      if ( wstcScriptEditor instanceof StyledTextComp ) {
+        ((StyledTextComp) wstcScriptEditor).getTextWidget().setBackground( GuiResource.getInstance().getColorDemoGray() );
+      }
     } else {
       wtvScriptLocation.setEditable( false );
       props.setLook(wstcScriptEditor, Props.WIDGET_STYLE_FIXED);
