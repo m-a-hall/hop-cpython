@@ -13,8 +13,6 @@
         <maven.compiler.source>17</maven.compiler.source>
         <hop.version>2.13.0</hop.version>
         <opencsv.version>5.9</opencsv.version>
-        <commons-io.version>2.11.0</commons-io.version>
-        <jackson.version>2.16.1</jackson.version>
         <buildId>${maven.build.timestamp}</buildId>
         <maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
     </properties>
@@ -48,21 +46,6 @@
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>${opencsv.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>${commons-io.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
         <!-- Apache Arrow dependencies -->
         <dependency>
