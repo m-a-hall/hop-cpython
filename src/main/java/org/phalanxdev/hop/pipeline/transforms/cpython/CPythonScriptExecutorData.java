@@ -241,7 +241,8 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
   public Object[][] constructOutputRowsFromFrame( PythonSession session, String frameName, boolean includeRowIndex,
       ILogChannel log ) throws HopException {
 
-    PythonSession.RowMetaAndRows fromPy = session.rowsFromPythonDataFrame( frameName, includeRowIndex );
+    // Use the new Arrow-enabled method which automatically falls back to CSV if needed
+    PythonSession.RowMetaAndRows fromPy = session.rowsFromPythonDataFrameWithArrow( frameName, includeRowIndex );
     IRowMeta frameMeta = fromPy.m_rowMeta;
     Object[][] frameRows = fromPy.m_rows;
     Object[][] outputRows = new Object[frameRows.length][];
@@ -530,7 +531,8 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
             String currentFrameName = vars.resolve( frameNames.get( i ) );
             List<Object[]> randomRow = generateRandomRows( currentMeta, r );
             randomRows.add( randomRow );
-            session.rowsToPythonDataFrame( currentMeta, randomRow, currentFrameName );
+            // Use the new Arrow-enabled method which automatically falls back to CSV if needed
+            session.rowsToPythonDataFrameWithArrow( currentMeta, randomRow, currentFrameName );
           }
         }
 
@@ -548,7 +550,8 @@ public class CPythonScriptExecutorData extends BaseTransformData implements ITra
         if ( type == PythonSession.PythonVariableType.DataFrame ) {
           PythonSession.RowMetaAndRows
               result =
-              session.rowsFromPythonDataFrame( varToGet,
+              // Use the new Arrow-enabled method which automatically falls back to CSV if needed
+              session.rowsFromPythonDataFrameWithArrow( varToGet,
                   cPythonScriptExecutorMeta.getIncludeFrameRowIndexAsOutputField() );
           return result;
         } else {

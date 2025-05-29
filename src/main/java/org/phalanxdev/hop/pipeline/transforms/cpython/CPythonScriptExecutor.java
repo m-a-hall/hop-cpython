@@ -281,6 +281,8 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
                 CPythonScriptExecutorData
                     .acquirePySession( this, m_meta.getPythonCommand(), m_meta.getPytServerID(), getLogChannel(),
                         this );
+            // Configure Arrow usage based on meta configuration
+            session.setUseArrow( m_meta.getUseArrow() );
             rowsToPyDataFrame( session, m_data.m_incomingRowSets.get( i ).getRowMeta(), frameBuffer, frameName );
             framesAdded = true;
           } else {
@@ -300,6 +302,8 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
         session =
             CPythonScriptExecutorData
                 .acquirePySession( this, m_meta.getPythonCommand(), m_meta.getPytServerID(), getLogChannel(), this );
+        // Configure Arrow usage based on meta configuration
+        session.setUseArrow( m_meta.getUseArrow() );
 
         // grab all the reservoirs an push to python; then process result
         logDetailed( BaseMessages.getString( PKG, "CPythonScriptExecutor.Message.RetrievingReservoirs" ) );
@@ -324,6 +328,8 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
                     CPythonScriptExecutorData
                         .acquirePySession( this, m_meta.getPythonCommand(), m_meta.getPytServerID(), getLogChannel(),
                             this );
+                // Configure Arrow usage based on meta configuration
+                session.setUseArrow( m_meta.getUseArrow() );
                 sampleSpliced.clear();
                 sampleSpliced.add( objects );
                 rowsToPyDataFrame( session, m_data.m_incomingRowSets.get( j ).getRowMeta(), sampleSpliced, frameName );
@@ -351,6 +357,8 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
         session =
             CPythonScriptExecutorData
                 .acquirePySession( this, m_meta.getPythonCommand(), m_meta.getPytServerID(), getLogChannel(), this );
+        // Configure Arrow usage based on meta configuration
+        session.setUseArrow( m_meta.getUseArrow() );
         executeScriptAndProcessResult( session, m_meta.getContinueOnUnsetVars() );
       }
     } finally {
@@ -471,7 +479,8 @@ public class CPythonScriptExecutor extends BaseTransform<CPythonScriptExecutorMe
 
   protected void rowsToPyDataFrame( PythonSession session, IRowMeta rowMeta, List<Object[]> rows, String pyFrameName )
       throws HopException {
-    session.rowsToPythonDataFrame( rowMeta, rows, pyFrameName );
+    // Use the new Arrow-enabled method which automatically falls back to CSV if needed
+    session.rowsToPythonDataFrameWithArrow( rowMeta, rows, pyFrameName );
   }
 
   protected PythonSession.PythonVariableType getPythonVariableType( PythonSession session, String varName )

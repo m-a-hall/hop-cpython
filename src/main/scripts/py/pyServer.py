@@ -28,6 +28,15 @@ import matplotlib
 import matplotlib.pyplot as plt
 import csv
 
+# Try to import pyarrow for Arrow support
+_global_arrow_available = False
+try:
+    import pyarrow as pa
+    import pyarrow.ipc as ipc
+    _global_arrow_available = True
+except ImportError:
+    pass
+
 _global_python3 = sys.version_info >= (3, 0)
 
 if _global_python3:
@@ -46,6 +55,7 @@ except:
 
 _global_connection = None
 _global_env = {}
+_global_use_arrow = False  # Flag to control Arrow usage
 
 _global_startup_debug = False
 
@@ -62,22 +72,35 @@ if len(sys.argv) > 2:
 def runServer():
     if _global_startup_debug == True:
         print('Python server starting...\n')
+        print('Arrow support available: %s\n' % _global_arrow_available)
     global _global_connection
     _global_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     _global_connection.connect(('localhost', int(sys.argv[1])))
     pid_response = {}
     pid_response['response'] = 'pid_response'
     pid_response['pid'] = os.getpid()
+    pid_response['arrow_available'] = _global_arrow_available
     send_response(pid_response, True)
     try:
         while 1:
             message = receive_message(True)
             if 'command' in message:
                 command = message['command']
+                # Check if we should use Arrow for this session
+                if 'use_arrow' in message:
+                    global _global_use_arrow
+                    _global_use_arrow = message['use_arrow'] and _global_arrow_available
+                
                 if command == 'accept_rows':
-                    receive_rows(message)
+                    if _global_use_arrow and _global_arrow_available:
+                        receive_rows_arrow(message)
+                    else:
+                        receive_rows(message)
                 elif command == 'get_frame':
-                    send_rows(message)
+                    if _global_use_arrow and _global_arrow_available:
+                        send_rows_arrow(message)
+                    else:
+                        send_rows(message)
                 elif command == 'execute_script':
                     execute_script(message)
                 elif command == 'get_variable_list':
@@ -125,6 +148,95 @@ def send_debug_buffer():
     sys.stdout = StringIO()
     sys.stderr = StringIO()
     send_response(ok_response, True)
+
+
+def receive_rows_arrow(message):
+    """Receive rows using Apache Arrow format"""
+    if 'row_meta' in message:
+        row_meta = message['row_meta']
+        frame_name = row_meta['frame_name']
+        num_rows = message['num_rows']
+        
+        if num_rows > 0:
+            # Receive Arrow IPC stream
+            size_bytes = b''
+            while len(size_bytes) < 4:
+                size_bytes += _global_connection.recv(4 - len(size_bytes))
+            size = struct.unpack('>L', size_bytes)[0]
+            
+            # Read the Arrow data
+            arrow_data = b''
+            while len(arrow_data) < size:
+                chunk = _global_connection.recv(min(size - len(arrow_data), 65536))
+                if not chunk:
+                    break
+                arrow_data += chunk
+            
+            # Convert Arrow to pandas DataFrame
+            reader = pa.ipc.open_stream(BytesIO(arrow_data))
+            table = reader.read_all()
+            frame = table.to_pandas()
+            
+            _global_env[frame_name] = frame
+            
+            if message_debug(message) == True:
+                print(frame.info(), '\n')
+                print(frame, '\n')
+        
+        ack_command_ok()
+    else:
+        error = 'put rows json message does not contain a header entry!'
+        ack_command_err(error)
+
+
+def send_rows_arrow(message):
+    """Send rows using Apache Arrow format"""
+    frame_name = message['frame_name']
+    frame = get_variable(frame_name)
+    include_index = False
+    if 'include_index' in message:
+        include_index = message['include_index']
+    
+    if type(frame) is not pd.DataFrame:
+        message = 'Variable ' + frame_name
+        if frame is None:
+            message += ' is not defined'
+        else:
+            message += ' is not a DataFrame object'
+        ack_command_err(message)
+        return
+    else:
+        ack_command_ok()
+    
+    # Send metadata response
+    response = {}
+    response['frame_name'] = frame_name
+    response['response'] = 'row_meta'
+    response['num_rows'] = len(frame.index)
+    response['fields'] = frame_to_fields_list(frame, include_index)
+    response['format'] = 'arrow'
+    if message_debug(message) == True:
+        print(response)
+    send_response(response, True)
+    
+    # Convert DataFrame to Arrow and send as IPC stream
+    if include_index:
+        frame_with_index = frame.reset_index()
+        table = pa.Table.from_pandas(frame_with_index, preserve_index=False)
+    else:
+        table = pa.Table.from_pandas(frame, preserve_index=False)
+    
+    # Write to buffer
+    sink = BytesIO()
+    writer = pa.ipc.new_stream(sink, table.schema)
+    writer.write_table(table)
+    writer.close()
+    
+    # Send the Arrow data
+    arrow_bytes = sink.getvalue()
+    _global_connection.sendall(struct.pack('>L', len(arrow_bytes)))
+    _global_connection.sendall(arrow_bytes)
+
 
 def receive_rows(message):
     if 'row_meta' in message:
@@ -197,34 +309,31 @@ def send_rows(message):
     send_response(s.getvalue(), False)
 
 def frame_to_fields_list(frame, include_index):
-    field_list = []
-    if include_index == True:
-        attribute = {}
-        attribute['name'] = 'index'
-        type = str(frame.index.dtype)
-        if type == 'object':
-            attribute['type'] = 'string'
-        elif type == 'bool':
-            attribute['type'] = 'boolean'
-        elif type.startswith('datetime'):
-            attribute['type'] = 'date'
+    fields = []
+    if include_index:
+        # add the index as a field
+        # Python 3 returns the name of an index. Python 2 returns True if the
+        # index has a name, or None otherwise
+        if _global_python3 and frame.index.name is not None:
+            name = frame.index.name
         else:
-            attribute['type'] = 'number'
-        field_list.append(attribute)
-    for att_name in frame.dtypes.index:
-        attribute = {}
-        attribute['name'] = str(att_name)
-        type = frame.dtypes[att_name]
-        if type == 'bool':
-            attribute['type'] = 'boolean'
-        elif str(type).startswith('datetime'):
-            attribute['type'] = 'date'
-        elif type == 'object':
-            attribute['type'] = 'string'
-        else:
-            attribute['type'] = 'number'
-        field_list.append(attribute)
-    return field_list
+            name = "index"
+        fields.append({'name': name, 'type': 'number'})
+
+    for n in frame.columns:
+        t = 'string'
+        d = frame[n].dtype
+        if d == 'float16' or d == 'float32' or d == 'float64':
+            t = 'number'
+        elif d == 'int8' or d == 'int16' or d == 'int32' or d == 'int64':
+            t = 'number'
+        elif d == 'bool':
+            t = 'boolean'
+        elif d.name.startswith('datetime'):
+            t = 'date'
+        fields.append({'name': n, 'type': t})
+    return fields
+
 
 def send_response(response, isJson):
     if isJson is True:
@@ -498,20 +607,17 @@ def receive_pickled_variable_value(message):
         # print(pickled_var_value)
         if _global_python3:
             pickled_var_value = base64_decode(pickled_var_value)
-        else:
-            pickled_var_value = str(pickled_var_value)
-        object = pickle.loads(pickled_var_value)
-        _global_env[var_name] = object
+        var_value = pickle.loads(pickled_var_value)
+        _global_env[var_name] = var_value
         ack_command_ok()
     else:
-        error = 'put variable value json message does not contain a ' \
-                'variable_name or variable_value entry!'
-        ack_command_err(error)
+        ack_command_err('receive pickled variable value does not contain a variable_name '
+                        'and/or variable_value entry')
 
 
-def is_nan(s):
+def is_json(json_data):
     try:
-        return math.isnan(s)
+        json_object = json.loads(json_data)
     except:
         return False
 

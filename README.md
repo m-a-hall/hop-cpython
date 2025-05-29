@@ -19,6 +19,21 @@ The plugin uses a client-server architecture where the Hop pipeline (Java) commu
 
 ![Hop CPython Communication Flow](cpython-diagram.png)
 
+Apache Arrow Support
+-------------------
+Version 2.13.0 adds support for Apache Arrow for high-performance data transfer between Hop and Python. Arrow provides:
+- Significantly faster data transfer for large datasets
+- Zero-copy data exchange
+- Better handling of data types and null values
+- Automatic fallback to CSV when Arrow is not available
+
+To enable Arrow support, install pyarrow in your Python environment:
+```
+pip install pyarrow>=15.0.0
+```
+
+Arrow support is enabled by default when available and can be configured in the transform settings.
+
 Further Reading
 ---------------
 You will need to have python installed on your machine. Either >= 2.7 in the 2.x version of python or 3.x. In addition, the following python packages are required:

@@ -211,6 +211,12 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta<CPythonScriptEx
   protected boolean m_includeInputAsOutput = false;
 
   /**
+   * True if Apache Arrow should be used for data transfer (when available)
+   */
+  @HopMetadataProperty
+  protected boolean m_useArrow = true;
+
+  /**
    * Outgoing fields
    */
   protected IRowMeta m_outputFields;
@@ -343,6 +349,24 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta<CPythonScriptEx
    */
   public boolean getIncludeInputAsOutput() {
     return m_includeInputAsOutput;
+  }
+
+  /**
+   * Set whether to use Apache Arrow for data transfer
+   *
+   * @param useArrow true to use Arrow when available
+   */
+  public void setUseArrow(boolean useArrow) {
+    m_useArrow = useArrow;
+  }
+
+  /**
+   * Get whether to use Apache Arrow for data transfer
+   *
+   * @return true if Arrow should be used when available
+   */
+  public boolean getUseArrow() {
+    return m_useArrow;
   }
 
   /**

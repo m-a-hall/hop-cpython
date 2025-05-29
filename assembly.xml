@@ -27,15 +27,19 @@
     <fileSet>
       <directory>target/lib</directory>
       <outputDirectory>lib</outputDirectory>
-      <includes>
-	<include>commons-io-${commons-io.version}.jar</include>
-	<include>commons-lang3-3.3.2.jar</include>
-	<include>guava-13.0.1.jar</include>
-	<include>jackson-core-asl-${jackson.version}.jar</include>
-	<include>jackson-mapper-asl-${jackson.version}.jar</include>
-	<include>opencsv-${opencsv.version}.jar</include>
-	<include>guava-27.0-jre.jar</include>
-      </includes>
+      <excludes>
+	<!-- Exclude Hop core dependencies that are already provided -->
+	<exclude>hop-core-*.jar</exclude>
+	<exclude>hop-engine-*.jar</exclude>
+	<exclude>hop-ui-*.jar</exclude>
+	<exclude>org.eclipse.swt.*.jar</exclude>
+	<!-- Exclude test dependencies -->
+	<exclude>junit-*.jar</exclude>
+	<exclude>hamcrest-*.jar</exclude>
+	<!-- Exclude other dependencies that might conflict with Hop -->
+	<exclude>slf4j-*.jar</exclude>
+	<exclude>log4j-*.jar</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>target</directory>
