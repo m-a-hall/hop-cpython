@@ -49,5 +49,12 @@
 	<include>version.xml</include>
       </includes>
     </fileSet>
+    <fileSet>
+      <directory>sample</directory>
+      <outputDirectory>sample</outputDirectory>
+      <includes>
+	<include>**/*</include>
+      </includes>
+    </fileSet>
   </fileSets>
 </assembly>
