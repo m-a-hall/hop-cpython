@@ -33,7 +33,7 @@ import org.apache.hop.core.row.IValueMeta;
 import org.apache.hop.core.row.RowMeta;
 import org.apache.hop.core.row.value.ValueMetaFactory;
 import org.apache.hop.i18n.BaseMessages;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -686,7 +686,7 @@ public class ServerUtils {
         switch ( kettleMeta.getValueMeta( i ).getType() ) {
           case IValueMeta.TYPE_NUMBER:
             try {
-              row[i] = new Double( parsed[i] );
+              row[i] = Double.valueOf( parsed[i] );
             } catch ( NumberFormatException ex ) {
               throw new IOException( ex );
             }
@@ -1041,6 +1041,27 @@ public class ServerUtils {
   }
 
   /**
+   * Extended version that also returns Arrow availability
+   */
+  @SuppressWarnings( "unchecked" ) 
+  protected static Map<String, Object> receiveServerInitResponse( InputStream inputStream )
+      throws IOException {
+    byte[] bytes = readDelimitedFromInputStream( inputStream );
+    ObjectMapper mapper = new ObjectMapper();
+    Map<String, Object> ack = mapper.readValue( bytes, Map.class );
+
+    String response = ack.get( RESPONSE_KEY ).toString();
+    if ( response.equals( PID_RESPONSE_KEY ) ) {
+      Map<String, Object> result = new HashMap<>();
+      result.put( "pid", (Integer) ack.get( "pid" ) );
+      result.put( "arrow_available", ack.get( "arrow_available" ) != null ? (Boolean) ack.get( "arrow_available" ) : false );
+      return result;
+    } else {
+      throw new IOException( BaseMessages.getString( PKG, "ServerUtils.Error.NoPidResponse" ) );
+    }
+  }
+
+  /**
    * Std out and err are redirected to StringIO objects in the server. This
    * method retrieves the values of those buffers.
    *
@@ -1195,5 +1216,134 @@ public class ServerUtils {
     } catch ( IOException ex ) {
       throw new HopException( ex );
     }
+  }
+
+  /**
+   * Send rows to pandas data frame using Apache Arrow format
+   *
+   * @param log          optional log
+   * @param meta         metadata for the rows
+   * @param rows         the rows to send
+   * @param frameName    the name of the pandas data frame to create
+   * @param outputStream the output stream to write to
+   * @param inputStream  the input stream to read from
+   * @throws HopException if a problem occurs
+   */
+  protected static void sendRowsToPandasDataFrameArrow( ILogChannel log, IRowMeta meta, List<Object[]> rows,
+      String frameName, OutputStream outputStream, InputStream inputStream ) throws HopException {
+    ObjectMapper mapper = new ObjectMapper();
+
+    boolean debug = log == null || log.isDebug();
+    Map<String, Object> metaData = createMetadataMessage( frameName, meta );
+    Map<String, Object> command = new HashMap<String, Object>();
+    command.put( COMMAND_KEY, ACCEPT_ROWS_COMMAND );
+    command.put( NUM_ROWS_KEY, rows.size() );
+    command.put( ROW_META_KEY, metaData );
+    command.put( DEBUG_KEY, debug );
+    command.put( "use_arrow", true );
+
+    if ( inputStream != null && outputStream != null ) {
+      try {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        mapper.writeValue( bos, command );
+        byte[] bytes = bos.toByteArray();
+
+        if ( debug ) {
+          outputCommandDebug( command, log );
+        }
+
+        // write the command
+        writeDelimitedToOutputStream( bytes, outputStream );
+
+        // now write the Arrow data
+        if ( rows.size() > 0 ) {
+          if ( log != null && debug ) {
+            log.logDebug( "Sending Arrow data..." );
+          }
+
+          byte[] arrowData = ArrowUtils.rowsToArrow( meta, rows );
+          writeDelimitedToOutputStream( arrowData, outputStream );
+        }
+
+        String serverAck = receiveServerAck( inputStream );
+        if ( serverAck != null ) {
+          throw new HopException( BaseMessages.getString( PKG, "ServerUtils.Error.TransferOfRowsFailed" ) + serverAck );
+        }
+      } catch ( IOException ex ) {
+        throw new HopException( ex );
+      }
+    } else if ( debug ) {
+      outputCommandDebug( command, log );
+    }
+  }
+
+  /**
+   * Receive rows from pandas data frame using Apache Arrow format
+   *
+   * @param log             the log channel to use
+   * @param frameName       the name of the pandas frame to get
+   * @param includeRowIndex true to include the frame row index as a field
+   * @param inputStream     the input stream to read a response from
+   * @param outputStream    the output stream to talk to the server on
+   * @return the data frame converted to rows along with its associated row metadata
+   * @throws HopException if a problem occurs
+   */
+  @SuppressWarnings( "unchecked" ) 
+  protected static RowMetaAndRows receiveRowsFromPandasDataFrameArrow( ILogChannel log,
+      String frameName, boolean includeRowIndex, OutputStream outputStream, InputStream inputStream )
+      throws HopException {
+
+    boolean debug = log == null || log.isDebug();
+    Map<String, Object> command = new HashMap<String, Object>();
+    command.put( COMMAND_KEY, GET_FRAME_COMMAND );
+    command.put( FRAME_NAME_KEY, frameName );
+    command.put( FRAME_INCLUDE_ROW_INDEX, includeRowIndex );
+    command.put( DEBUG_KEY, debug );
+    command.put( "use_arrow", true );
+
+    RowMetaAndRows result = null;
+
+    if ( inputStream != null && outputStream != null ) {
+      ObjectMapper mapper = new ObjectMapper();
+      try {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        mapper.writeValue( bos, command );
+        byte[] bytes = bos.toByteArray();
+
+        if ( debug ) {
+          outputCommandDebug( command, log );
+        }
+
+        // write the command
+        writeDelimitedToOutputStream( bytes, outputStream );
+
+        String serverAck = receiveServerAck( inputStream );
+        if ( serverAck != null ) {
+          throw new HopException( serverAck );
+        }
+
+        // get the row meta response
+        bytes = readDelimitedFromInputStream( inputStream );
+        Map<String, Object> metaResponse = mapper.readValue( bytes, Map.class );
+        if ( debug ) {
+          log.logDebug( "Received metadata response with " + metaResponse.get( NUM_ROWS_KEY ) + " rows" );
+        }
+
+        String format = (String) metaResponse.get( "format" );
+        if ( "arrow".equals( format ) ) {
+          // Read Arrow data
+          bytes = readDelimitedFromInputStream( inputStream );
+          result = ArrowUtils.arrowToRows( bytes );
+        } else {
+          throw new HopException( "Expected Arrow format but received: " + format );
+        }
+      } catch ( IOException ex ) {
+        throw new HopException( ex );
+      }
+    } else if ( debug ) {
+      outputCommandDebug( command, log );
+    }
+
+    return result;
   }
 }

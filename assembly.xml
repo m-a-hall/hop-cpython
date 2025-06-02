@@ -27,15 +27,69 @@
     <fileSet>
       <directory>target/lib</directory>
       <outputDirectory>lib</outputDirectory>
-      <includes>
-	<include>commons-io-${commons-io.version}.jar</include>
-	<include>commons-lang3-3.3.2.jar</include>
-	<include>guava-13.0.1.jar</include>
-	<include>jackson-core-asl-${jackson.version}.jar</include>
-	<include>jackson-mapper-asl-${jackson.version}.jar</include>
-	<include>opencsv-${opencsv.version}.jar</include>
-	<include>guava-27.0-jre.jar</include>
-      </includes>
+      <excludes>
+	<!-- Exclude Hop core dependencies that are already provided -->
+	<exclude>hop-core-*.jar</exclude>
+	<exclude>hop-engine-*.jar</exclude>
+	<exclude>hop-ui-*.jar</exclude>
+	<exclude>org.eclipse.swt.*.jar</exclude>
+	<!-- Exclude test dependencies -->
+	<exclude>junit-*.jar</exclude>
+	<exclude>hamcrest-*.jar</exclude>
+	<!-- Exclude dependencies that Hop provides -->
+	<exclude>slf4j-*.jar</exclude>
+	<exclude>log4j-*.jar</exclude>
+	<exclude>jackson-*.jar</exclude>
+	<exclude>commons-io-*.jar</exclude>
+	<exclude>commons-lang-*.jar</exclude>
+	<exclude>commons-logging-*.jar</exclude>
+	<exclude>commons-codec-*.jar</exclude>
+	<exclude>commons-compress-*.jar</exclude>
+	<exclude>commons-collections-*.jar</exclude>
+	<exclude>commons-collections4-*.jar</exclude>
+	<exclude>commons-vfs2-*.jar</exclude>
+	<exclude>commons-validator-*.jar</exclude>
+	<exclude>commons-digester-*.jar</exclude>
+	<exclude>guava-*.jar</exclude>
+	<exclude>gson-*.jar</exclude>
+	<exclude>httpclient-*.jar</exclude>
+	<exclude>httpclient5-*.jar</exclude>
+	<exclude>httpcore-*.jar</exclude>
+	<exclude>httpcore5-*.jar</exclude>
+	<exclude>jetty-*.jar</exclude>
+	<exclude>jersey-*.jar</exclude>
+	<exclude>jakarta.*.jar</exclude>
+	<exclude>javax.*.jar</exclude>
+	<exclude>batik-*.jar</exclude>
+	<exclude>xmlgraphics-*.jar</exclude>
+	<exclude>xml-apis-*.jar</exclude>
+	<exclude>rhino-*.jar</exclude>
+	<exclude>avro-*.jar</exclude>
+	<exclude>snappy-*.jar</exclude>
+	<exclude>jandex-*.jar</exclude>
+	<exclude>javassist-*.jar</exclude>
+	<exclude>picocli-*.jar</exclude>
+	<exclude>encoder-*.jar</exclude>
+	<exclude>json-simple-*.jar</exclude>
+	<exclude>webservices-*.jar</exclude>
+	<exclude>hk2-*.jar</exclude>
+	<exclude>aopalliance-*.jar</exclude>
+	<exclude>osgi-*.jar</exclude>
+	<exclude>jsr305-*.jar</exclude>
+	<exclude>checker-qual-*.jar</exclude>
+	<exclude>error_prone_annotations-*.jar</exclude>
+	<exclude>failureaccess-*.jar</exclude>
+	<exclude>listenablefuture-*.jar</exclude>
+	<exclude>j2objc-*.jar</exclude>
+	<!-- Keep only what the plugin specifically needs -->
+	<!-- opencsv-*.jar - KEEP for CSV parsing -->
+	<!-- arrow-*.jar - KEEP for Arrow support -->
+	<!-- commons-beanutils-*.jar - KEEP as dependency of opencsv -->
+	<!-- commons-text-*.jar - KEEP as dependency of opencsv -->
+	<!-- commons-lang3-*.jar - KEEP as dependency of opencsv -->
+	<!-- flatbuffers-*.jar - KEEP as dependency of arrow -->
+	<!-- netty-*.jar - KEEP as dependency of arrow -->
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>target</directory>
@@ -43,6 +97,13 @@
       <includes>
 	<include>*.jar</include>
 	<include>version.xml</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>sample</directory>
+      <outputDirectory>sample</outputDirectory>
+      <includes>
+	<include>**/*</include>
       </includes>
     </fileSet>
   </fileSets>

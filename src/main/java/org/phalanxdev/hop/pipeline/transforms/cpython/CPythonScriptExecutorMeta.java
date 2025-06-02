@@ -35,6 +35,7 @@ import org.apache.hop.core.row.value.ValueMetaFactory;
 import org.apache.hop.core.variables.IVariables;
 import org.apache.hop.core.xml.XmlHandler;
 import org.apache.hop.i18n.BaseMessages;
+import org.apache.hop.metadata.api.HopMetadataProperty;
 import org.apache.hop.metadata.api.IHopMetadataProvider;
 import org.apache.hop.pipeline.Pipeline;
 import org.apache.hop.pipeline.PipelineMeta;
@@ -103,6 +104,7 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta<CPythonScriptEx
   /**
    * The script to execute
    */
+  @HopMetadataProperty
   protected String m_script = BaseMessages
       .getString(PKG, "CPythonScriptExecutorMeta.InitialScriptText");
 
@@ -110,6 +112,7 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta<CPythonScriptEx
    * User-supplied path to python executable. If not specified, then we use the default python in
    * the path
    */
+  @HopMetadataProperty
   protected String m_pythonCommand = "";
 
   /**
@@ -117,6 +120,7 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta<CPythonScriptEx
    * has specified path to python executable. E.g. under windows, Anaconda requires Library/bin to
    * be in the PATH as well as the python executable.
    */
+  @HopMetadataProperty
   protected String m_pyPathEntries = "";
 
   /**
@@ -124,22 +128,26 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta<CPythonScriptEx
    * a non-default server. Can be used to share a given server instance among several clients, or to
    * ensure that a given client has a dedicated server.
    */
+  @HopMetadataProperty
   protected String m_serverID = "";
 
   /**
    * Whether to load a script at runtime
    */
+  @HopMetadataProperty
   protected boolean m_loadScriptAtRuntime;
 
   /**
    * The script to load (if loading at runtime)
    */
+  @HopMetadataProperty
   protected String m_loadScriptFile = ""; //$NON-NLS-1$
 
   /**
    * The name(s) of the data frames to create in python - one corresponding to each incoming row
    * set
    */
+  @HopMetadataProperty
   protected List<String> m_frameNames = new ArrayList<>();
 
   /**
@@ -147,43 +155,51 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta<CPythonScriptEx
    * extracting a data frame. There can be more than one if all variables are either strings or
    * images
    */
+  @HopMetadataProperty
   protected List<String> m_pyVarsToGet = new ArrayList<>();
 
   /**
    * Whether to include the pandas frame row index as an output field (when retrieving a single data
    * frame from python as output.
    */
+  @HopMetadataProperty
   protected boolean m_includeRowIndex;
 
   /**
    * Whether to continue processing if one or more requested variables are not set in the python
    * environment after executing the script.
    */
+  @HopMetadataProperty
   protected boolean m_continueOnUnsetVars;
 
   /**
    * Default Rows to Process
    */
+  @HopMetadataProperty
   protected String m_rowsToProcess = DEFAULT_ROWS_TO_PROCESS;
 
   /**
    * Number of rows to process if <code>rows to process is batch </code>
    */
+  @HopMetadataProperty
   protected String m_rowsToProcessSize = "";
 
   /**
    * True if reservoir sampling is to be used, in which case the batch size is the reservoir size
    */
+  @HopMetadataProperty
   protected boolean m_doingReservoirSampling = false;
 
   /**
    * If reservoir sampling is enabled, this value is used to define the sampling size
    */
+  @HopMetadataProperty
   protected String m_reservoirSamplingSize = "";
 
   /**
    * Random seed for reservoir sampling
    */
+  @HopMetadataProperty
   protected String m_seed = "1"; //$NON-NLS-1$
 
   /**
@@ -191,7 +207,14 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta<CPythonScriptEx
    * a single pandas data frame; furthermore, number of output rows must match number of input
    * rows.
    */
+  @HopMetadataProperty
   protected boolean m_includeInputAsOutput = false;
+
+  /**
+   * True if Apache Arrow should be used for data transfer (when available)
+   */
+  @HopMetadataProperty
+  protected boolean m_useArrow = true;
 
   /**
    * Outgoing fields
@@ -326,6 +349,24 @@ public class CPythonScriptExecutorMeta extends BaseTransformMeta<CPythonScriptEx
    */
   public boolean getIncludeInputAsOutput() {
     return m_includeInputAsOutput;
+  }
+
+  /**
+   * Set whether to use Apache Arrow for data transfer
+   *
+   * @param useArrow true to use Arrow when available
+   */
+  public void setUseArrow(boolean useArrow) {
+    m_useArrow = useArrow;
+  }
+
+  /**
+   * Get whether to use Apache Arrow for data transfer
+   *
+   * @return true if Arrow should be used when available
+   */
+  public boolean getUseArrow() {
+    return m_useArrow;
   }
 
   /**

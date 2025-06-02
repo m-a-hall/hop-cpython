@@ -176,6 +176,16 @@ public class PythonSession {
   protected static boolean s_attemptedScriptInstall;
 
   /**
+   * Whether Arrow support is available in Python
+   */
+  protected boolean m_arrowAvailable = false;
+
+  /**
+   * Whether to use Arrow for data transfer (if available)
+   */
+  protected boolean m_useArrow = true;
+
+  /**
    * Acquire the session for the requester
    *
    * @param requester the object requesting the session
@@ -420,6 +430,10 @@ public class PythonSession {
     String osType = System.getProperty( "os.name" );
     boolean windows = osType != null && osType.toLowerCase().contains( "windows" );
 
+    if ( m_log != null ) {
+      m_log.logBasic( "Launching Python server with script (OS: " + osType + ")" );
+    }
+
     Thread acceptThread = startServerSocket();
     boolean debug = m_log != null && m_log.isDebug();
     String
@@ -430,6 +444,10 @@ public class PythonSession {
     }
 
     String scriptPath = File.createTempFile( "pyserver_", windows ? ".bat" : ".sh" ).toString();
+    
+    if ( m_log != null ) {
+      m_log.logBasic( "Writing server launch script to: " + scriptPath );
+    }
 
     FileWriter fwriter = new FileWriter( scriptPath );
     fwriter.write( script );
@@ -437,14 +455,52 @@ public class PythonSession {
     fwriter.close();
 
     if ( !windows ) {
+      if ( m_log != null ) {
+        m_log.logDebug( "Making script executable: chmod u+x " + scriptPath );
+      }
       Runtime.getRuntime().exec( "chmod u+x " + scriptPath );
     }
 
     ProcessBuilder processBuilder = new ProcessBuilder( scriptPath );
+    
+    if ( m_log != null ) {
+      m_log.logBasic( "Starting Python server process..." );
+    }
+    
     m_serverProcess = processBuilder.start();
+    
+    // Start a thread to capture error output from the Python process
+    Thread errorReaderThread = new Thread() {
+      @Override public void run() {
+        try {
+          BufferedReader errorReader = new BufferedReader(
+              new InputStreamReader( m_serverProcess.getErrorStream() ) );
+          String line;
+          while ( ( line = errorReader.readLine() ) != null ) {
+            if ( m_log != null ) {
+              m_log.logError( "Python server error: " + line );
+            } else {
+              System.err.println( "Python server error: " + line );
+            }
+          }
+        } catch ( IOException e ) {
+          // Process ended
+        }
+      }
+    };
+    errorReaderThread.setDaemon( true );
+    errorReaderThread.start();
+    
+    if ( m_log != null ) {
+      m_log.logBasic( "Waiting for Python server to connect on port " + m_serverSocket.getLocalPort() + "..." );
+    }
+    
     try {
       acceptThread.join();
     } catch ( InterruptedException e ) {
+      if ( m_log != null ) {
+        m_log.logError( "Interrupted while waiting for server connection" );
+      }
     }
 
     checkLocalSocketAndCreateShutdownHook();
@@ -465,7 +521,29 @@ public class PythonSession {
   private PythonSession( String pythonCommand, String serverID, String pathEntries, boolean defaultServer,
       ILogChannel log ) throws IOException {
 
-    installPyScriptsToTmp();
+    m_log = log;
+    
+    if ( log != null ) {
+      log.logBasic( "Initializing Python session with command: " + pythonCommand );
+      if ( serverID != null && serverID.length() > 0 ) {
+        log.logBasic( "Server ID: " + serverID );
+      }
+      if ( pathEntries != null && pathEntries.length() > 0 ) {
+        log.logBasic( "Additional PATH entries: " + pathEntries );
+      }
+    }
+
+    try {
+      if ( log != null ) {
+        log.logDebug( "Installing Python scripts to temp directory..." );
+      }
+      installPyScriptsToTmp();
+    } catch ( IOException e ) {
+      if ( log != null ) {
+        log.logError( "Failed to install Python scripts to temp directory: " + e.getMessage() );
+      }
+      throw e;
+    }
     m_pythonCommand = pythonCommand;
     String key = pythonCommand + ( serverID != null && serverID.length() > 0 ? serverID : "" );
     m_sessionKey = key;
@@ -476,32 +554,73 @@ public class PythonSession {
     if ( !defaultServer && pathEntries != null && pathEntries.length() > 0 ) {
       // use a shell/batch script to launch the server (so that we can
       // set the path so that the python server works correctly)
+      if ( log != null ) {
+        log.logBasic( "Running Python environment check with additional PATH entries..." );
+      }
       String envCheckResults = writeAndLaunchPyCheck( pathEntries );
       m_pythonEnvCheckResults.put( m_sessionKey, envCheckResults );
-      if ( envCheckResults.length() < 5 ) {
+      
+      if ( log != null && envCheckResults.length() > 0 ) {
+        log.logDetailed( "Python environment check results:\n" + envCheckResults );
+      }
+      
+      // Check if environment check passed by looking for error indicators
+      // Exclude informational messages about pyarrow availability 
+      boolean hasErrors = (envCheckResults.contains("is not available") && 
+                          !envCheckResults.contains("Apache Arrow support not available")) ||
+                         envCheckResults.contains("does not meet") ||
+                         envCheckResults.contains("problem occurred") ||
+                         envCheckResults.contains("did not import correctly") ||
+                         (envCheckResults.contains("Library ") && envCheckResults.contains("is not available"));
+      
+      if ( !hasErrors ) {
         // launch server
         log.logDetailed(
-            "Launching " + m_pythonCommand + " with additional path [" + pathEntries + "] " + ( serverID != null ?
+            "Python environment check passed. Launching " + m_pythonCommand + " with additional path [" + pathEntries + "] " + ( serverID != null ?
                 " ID " + serverID : "" ) );
         launchServerScript( pathEntries );
         m_pythonServers.put( m_sessionKey, this );
       } else {
-        log.logError( "Was unable to launch server:\n\n" + envCheckResults );
+        log.logError( "Python environment check failed:\n\n" + envCheckResults );
       }
     } else {
       File tmp = new File( s_osTmpDir );
       String tester = tmp.toString() + File.separator + "pyCheck.py";
 
+      if ( log != null ) {
+        log.logBasic( "Running Python environment check using: " + pythonCommand + " " + tester );
+      }
+
       ProcessBuilder builder = new ProcessBuilder( pythonCommand, tester );
       Process pyProcess = builder.start();
       StringWriter writer = new StringWriter();
+      StringWriter errorWriter = new StringWriter();
       IOUtils.copy( pyProcess.getInputStream(), writer );
+      IOUtils.copy( pyProcess.getErrorStream(), errorWriter );
       String envCheckResults = writer.toString();
+      String errorOutput = errorWriter.toString();
       m_shutdown = false;
 
+      if ( log != null && envCheckResults.length() > 0 ) {
+        log.logDetailed( "Python environment check output:\n" + envCheckResults );
+      }
+      if ( log != null && errorOutput.length() > 0 ) {
+        log.logError( "Python environment check errors:\n" + errorOutput );
+      }
+
       m_pythonEnvCheckResults.put( m_sessionKey, envCheckResults );
-      if ( envCheckResults.length() < 5 ) {
-        log.logDetailed( "Launching " + m_pythonCommand + ( serverID != null ? " ID " + serverID : "" ));
+      
+      // Check if environment check passed by looking for error indicators
+      // Exclude informational messages about pyarrow availability 
+      boolean hasErrors = (envCheckResults.contains("is not available") && 
+                          !envCheckResults.contains("Apache Arrow support not available")) ||
+                         envCheckResults.contains("does not meet") ||
+                         envCheckResults.contains("problem occurred") ||
+                         envCheckResults.contains("did not import correctly") ||
+                         (envCheckResults.contains("Library ") && envCheckResults.contains("is not available"));
+      
+      if ( !hasErrors ) {
+        log.logDetailed( "Python environment check passed. Launching " + m_pythonCommand + ( serverID != null ? " ID " + serverID : "" ));
         // launch server
         launchServer( true );
         m_pythonServers.put( m_sessionKey, this );
@@ -511,7 +630,7 @@ public class PythonSession {
           s_pythonEnvCheckResults = envCheckResults;
         }
       } else {
-        log.logError( "Was unable to launch server:\n\n" + envCheckResults );
+        log.logError( "Python environment check failed:\n\n" + envCheckResults );
       }
     }
   }
@@ -564,16 +683,31 @@ public class PythonSession {
    */
   private Thread startServerSocket() throws IOException {
     if ( m_log != null ) {
-      m_log.logDebug( "Launching server socket..." );
+      m_log.logBasic( "Creating server socket..." );
     }
+    
     m_serverSocket = new ServerSocket( 0 );
     m_serverSocket.setSoTimeout( 12000 );
+    
+    int port = m_serverSocket.getLocalPort();
+    if ( m_log != null ) {
+      m_log.logBasic( "Server socket created on port " + port + " with timeout 12000ms" );
+    }
 
     Thread acceptThread = new Thread() {
       @Override public void run() {
         try {
+          if ( m_log != null ) {
+            m_log.logDebug( "Waiting for Python server to connect on port " + port + "..." );
+          }
           m_localSocket = m_serverSocket.accept();
+          if ( m_log != null ) {
+            m_log.logBasic( "Python server connected successfully" );
+          }
         } catch ( IOException e ) {
+          if ( m_log != null ) {
+            m_log.logError( "Failed to accept connection from Python server: " + e.getMessage() );
+          }
           m_localSocket = null;
         }
       }
@@ -592,10 +726,29 @@ public class PythonSession {
    */
   private void checkLocalSocketAndCreateShutdownHook() throws IOException {
     if ( m_localSocket == null ) {
+      if ( m_log != null ) {
+        m_log.logError( "Failed to establish connection with Python server - socket is null" );
+      }
       shutdown();
       throw new IOException( "Was unable to start python server" );
     } else {
-      m_pythonPID = ServerUtils.receiveServerPIDAck( m_localSocket.getInputStream() );
+      if ( m_log != null ) {
+        m_log.logBasic( "Connection established with Python server, receiving initialization response..." );
+      }
+      
+      // Use the new method that also returns Arrow availability
+      Map<String, Object> initResponse = ServerUtils.receiveServerInitResponse( m_localSocket.getInputStream() );
+      m_pythonPID = (Integer) initResponse.get( "pid" );
+      m_arrowAvailable = (Boolean) initResponse.get( "arrow_available" );
+      
+      if ( m_log != null ) {
+        m_log.logBasic( "Python server initialized successfully:" );
+        m_log.logBasic( "  PID: " + m_pythonPID );
+        m_log.logBasic( "  Arrow support: " + (m_arrowAvailable ? "Available" : "Not available") );
+        if ( m_useArrow && !m_arrowAvailable ) {
+          m_log.logBasic( "  Note: Arrow was requested but is not available, will use CSV format" );
+        }
+      }
 
       m_shutdownHook = new Thread() {
         @Override public void run() {
@@ -617,6 +770,9 @@ public class PythonSession {
    * @throws IOException if a problem occurs
    */
   private void launchServer( boolean startPython ) throws IOException {
+    if ( m_log != null ) {
+      m_log.logBasic( "Launching Python server (startPython=" + startPython + ")" );
+    }
 
     Thread acceptThread = startServerSocket();
     int localPort = m_serverSocket.getLocalPort();
@@ -624,14 +780,52 @@ public class PythonSession {
     if ( startPython ) {
       String serverScript = s_osTmpDir + File.separator + "pyServer.py";
       boolean debug = m_log != null && m_log.isDebug();
+      
+      if ( m_log != null ) {
+        m_log.logBasic( "Starting Python server:" );
+        m_log.logBasic( "  Command: " + m_pythonCommand );
+        m_log.logBasic( "  Script: " + serverScript );
+        m_log.logBasic( "  Port: " + localPort );
+        m_log.logBasic( "  Debug mode: " + debug );
+      }
+      
       ProcessBuilder
           processBuilder =
           new ProcessBuilder( m_pythonCommand, serverScript, "" + localPort, debug ? "debug" : "" );
       m_serverProcess = processBuilder.start();
+      
+      // Start a thread to capture error output from the Python process
+      Thread errorReaderThread = new Thread() {
+        @Override public void run() {
+          try {
+            BufferedReader errorReader = new BufferedReader(
+                new InputStreamReader( m_serverProcess.getErrorStream() ) );
+            String line;
+            while ( ( line = errorReader.readLine() ) != null ) {
+              if ( m_log != null ) {
+                m_log.logError( "Python server error: " + line );
+              } else {
+                System.err.println( "Python server error: " + line );
+              }
+            }
+          } catch ( IOException e ) {
+            // Process ended
+          }
+        }
+      };
+      errorReaderThread.setDaemon( true );
+      errorReaderThread.start();
+      
+      if ( m_log != null ) {
+        m_log.logBasic( "Python server process started, waiting for connection..." );
+      }
     }
     try {
       acceptThread.join();
     } catch ( InterruptedException e ) {
+      if ( m_log != null ) {
+        m_log.logError( "Interrupted while waiting for server connection" );
+      }
     }
 
     checkLocalSocketAndCreateShutdownHook();
@@ -799,6 +993,72 @@ public class PythonSession {
     } catch ( IOException ex ) {
       throw new HopException( ex );
     }
+  }
+
+  /**
+   * Transfer Hop rows to a python pandas data frame using Arrow format if available
+   *
+   * @param rowMeta        the metadata for the rows being transferred
+   * @param rows           the rows to transfer
+   * @param pythonFrameName the name of the pandas data frame to create in python
+   * @throws HopException if a problem occurs
+   */
+  public void rowsToPythonDataFrameWithArrow( IRowMeta rowMeta, List<Object[]> rows, String pythonFrameName )
+      throws HopException {
+    try {
+      if ( m_useArrow && m_arrowAvailable ) {
+        ServerUtils.sendRowsToPandasDataFrameArrow( m_log, rowMeta, rows, pythonFrameName, 
+            m_localSocket.getOutputStream(), m_localSocket.getInputStream() );
+      } else {
+        // Fall back to CSV
+        ServerUtils.sendRowsToPandasDataFrame( m_log, rowMeta, rows, pythonFrameName, 
+            m_localSocket.getOutputStream(), m_localSocket.getInputStream() );
+      }
+    } catch ( IOException ex ) {
+      throw new HopException( ex );
+    }
+  }
+
+  /**
+   * Transfer a pandas data frame from python using Arrow format if available
+   *
+   * @param frameName       the name of the pandas data frame to get
+   * @param includeRowIndex true to include the pandas data frame row index as a field
+   * @return rows and row metadata encapsulated in a RowMetaAndRows object
+   * @throws HopException if a problem occurs
+   */
+  public RowMetaAndRows rowsFromPythonDataFrameWithArrow( String frameName, boolean includeRowIndex ) 
+      throws HopException {
+    try {
+      if ( m_useArrow && m_arrowAvailable ) {
+        return ServerUtils.receiveRowsFromPandasDataFrameArrow( m_log, frameName, includeRowIndex, 
+            m_localSocket.getOutputStream(), m_localSocket.getInputStream() );
+      } else {
+        // Fall back to CSV
+        return ServerUtils.receiveRowsFromPandasDataFrame( m_log, frameName, includeRowIndex, 
+            m_localSocket.getOutputStream(), m_localSocket.getInputStream() );
+      }
+    } catch ( IOException ex ) {
+      throw new HopException( ex );
+    }
+  }
+
+  /**
+   * Set whether to use Arrow for data transfer
+   *
+   * @param useArrow true to use Arrow if available
+   */
+  public void setUseArrow( boolean useArrow ) {
+    m_useArrow = useArrow;
+  }
+
+  /**
+   * Check if Arrow support is available
+   *
+   * @return true if Arrow is available in Python
+   */
+  public boolean isArrowAvailable() {
+    return m_arrowAvailable;
   }
 
   /**

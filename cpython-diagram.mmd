@@ -1,0 +1,46 @@
+sequenceDiagram
+    participant Hop as Hop Pipeline
+    participant Executor as CPythonScriptExecutor
+    participant Session as PythonSession
+    participant Server as pyServer.py
+    participant Py as Python Environment
+
+    Hop->>Executor: Execute pipeline with Python transform
+    Executor->>Session: Create/acquire Python session
+    Session->>Server: Start Python server process
+    Server->>Session: Return PID
+    
+    alt Data Input
+        Executor->>Session: Convert Hop rows to DataFrame
+        Session->>Server: Send DataFrame via socket (JSON+CSV)
+        Server->>Py: Create pandas DataFrame
+    end
+    
+    Executor->>Session: Execute Python script
+    Session->>Server: Send script via socket
+    Server->>Py: Execute script in Python environment
+    
+    alt Return DataFrame
+        Executor->>Session: Request DataFrame
+        Session->>Server: Request DataFrame
+        Server->>Py: Get DataFrame
+        Py->>Server: Return DataFrame structure and data
+        Server->>Session: Send DataFrame structure and values via socket
+        Session->>Executor: Convert to Hop rows
+    else Return Variables
+        Executor->>Session: Request variable(s) value
+        Session->>Server: Request variable(s)
+        Server->>Py: Get variable(s)
+        Py->>Server: Return variable(s) value
+        Server->>Session: Send variable(s) via socket
+        Session->>Executor: Convert to output field(s)
+    else Return Images
+        Executor->>Session: Request image
+        Session->>Server: Request image
+        Server->>Py: Get matplotlib Figure
+        Py->>Server: Return Figure
+        Server->>Session: Send image as base64 PNG
+        Session->>Executor: Convert to binary field
+    end
+    
+    Executor->>Hop: Return processed data

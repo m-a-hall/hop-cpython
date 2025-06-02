@@ -17,54 +17,69 @@
     <created_date>2015/07/02 09:49:17.731</created_date>
     <modified_user>-</modified_user>
     <modified_date>2015/07/02 09:49:17.731</modified_date>
-    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
-    <is_key_private>N</is_key_private>
   </info>
   <notepads>
     <notepad>
+      <backgroundcolorblue>112</backgroundcolorblue>
+      <backgroundcolorgreen>205</backgroundcolorgreen>
+      <backgroundcolorred>255</backgroundcolorred>
+      <bordercolorblue>100</bordercolorblue>
+      <bordercolorgreen>100</bordercolorgreen>
+      <bordercolorred>100</bordercolorred>
+      <fontbold>N</fontbold>
+      <fontcolorblue>0</fontcolorblue>
+      <fontcolorgreen>0</fontcolorgreen>
+      <fontcolorred>0</fontcolorred>
+      <fontitalic>N</fontitalic>
+      <fontname>Arial</fontname>
+      <fontsize>12</fontsize>
+      <height>46</height>
+      <xloc>1088</xloc>
+      <yloc>32</yloc>
       <note>Compute quartiles for columns
 in iris data</note>
-      <xloc>368</xloc>
-      <yloc>16</yloc>
       <width>220</width>
-      <heigth>46</heigth>
-      <fontname>Arial</fontname>
-      <fontsize>12</fontsize>
-      <fontbold>N</fontbold>
-      <fontitalic>N</fontitalic>
-      <fontcolorred>0</fontcolorred>
-      <fontcolorgreen>0</fontcolorgreen>
-      <fontcolorblue>0</fontcolorblue>
-      <backgroundcolorred>255</backgroundcolorred>
-      <backgroundcolorgreen>205</backgroundcolorgreen>
-      <backgroundcolorblue>112</backgroundcolorblue>
-      <bordercolorred>100</bordercolorred>
-      <bordercolorgreen>100</bordercolorgreen>
-      <bordercolorblue>100</bordercolorblue>
     </notepad>
     <notepad>
-      <note>Transform the numeric
-fields of the iris data with
-a PCA</note>
-      <xloc>368</xloc>
-      <yloc>144</yloc>
-      <width>181</width>
-      <heigth>64</heigth>
+      <backgroundcolorblue>112</backgroundcolorblue>
+      <backgroundcolorgreen>205</backgroundcolorgreen>
+      <backgroundcolorred>255</backgroundcolorred>
+      <bordercolorblue>100</bordercolorblue>
+      <bordercolorgreen>100</bordercolorgreen>
+      <bordercolorred>100</bordercolorred>
+      <fontbold>N</fontbold>
+      <fontcolorblue>0</fontcolorblue>
+      <fontcolorgreen>0</fontcolorgreen>
+      <fontcolorred>0</fontcolorred>
+      <fontitalic>N</fontitalic>
       <fontname>Arial</fontname>
       <fontsize>12</fontsize>
-      <fontbold>N</fontbold>
-      <fontitalic>N</fontitalic>
-      <fontcolorred>0</fontcolorred>
-      <fontcolorgreen>0</fontcolorgreen>
-      <fontcolorblue>0</fontcolorblue>
-      <backgroundcolorred>255</backgroundcolorred>
-      <backgroundcolorgreen>205</backgroundcolorgreen>
-      <backgroundcolorblue>112</backgroundcolorblue>
-      <bordercolorred>100</bordercolorred>
-      <bordercolorgreen>100</bordercolorgreen>
-      <bordercolorblue>100</bordercolorblue>
+      <height>82</height>
+      <xloc>816</xloc>
+      <yloc>128</yloc>
+      <note>The goal of this code is to reduce the dimensionality of the Iris dataset
+while preserving as much variance (information) as possible.
+It does this by applying PCA to the four numerical features 
+(sepal length, sepal width, petal length, petal width) of the Iris dataset.</note>
+      <width>490</width>
     </notepad>
     <notepad>
+      <backgroundcolorblue>112</backgroundcolorblue>
+      <backgroundcolorgreen>205</backgroundcolorgreen>
+      <backgroundcolorred>255</backgroundcolorred>
+      <bordercolorblue>100</bordercolorblue>
+      <bordercolorgreen>100</bordercolorgreen>
+      <bordercolorred>100</bordercolorred>
+      <fontbold>N</fontbold>
+      <fontcolorblue>0</fontcolorblue>
+      <fontcolorgreen>0</fontcolorgreen>
+      <fontcolorred>0</fontcolorred>
+      <fontitalic>N</fontitalic>
+      <fontname>Arial</fontname>
+      <fontsize>12</fontsize>
+      <height>136</height>
+      <xloc>496</xloc>
+      <yloc>224</yloc>
       <note>Create a bunch of visualizations
 of the iris data:
 
@@ -72,123 +87,107 @@ scatter plot with densities
 parallel coordinates
 andrew's curves
 radvis</note>
-      <xloc>352</xloc>
-      <yloc>240</yloc>
       <width>229</width>
-      <heigth>136</heigth>
-      <fontname>Arial</fontname>
-      <fontsize>12</fontsize>
-      <fontbold>N</fontbold>
-      <fontitalic>N</fontitalic>
-      <fontcolorred>0</fontcolorred>
-      <fontcolorgreen>0</fontcolorgreen>
-      <fontcolorblue>0</fontcolorblue>
-      <backgroundcolorred>255</backgroundcolorred>
-      <backgroundcolorgreen>205</backgroundcolorgreen>
-      <backgroundcolorblue>112</backgroundcolorblue>
-      <bordercolorred>100</bordercolorred>
-      <bordercolorgreen>100</bordercolorgreen>
-      <bordercolorblue>100</bordercolorblue>
     </notepad>
     <notepad>
+      <backgroundcolorblue>112</backgroundcolorblue>
+      <backgroundcolorgreen>205</backgroundcolorgreen>
+      <backgroundcolorred>255</backgroundcolorred>
+      <bordercolorblue>100</bordercolorblue>
+      <bordercolorgreen>100</bordercolorgreen>
+      <bordercolorred>100</bordercolorred>
+      <fontbold>N</fontbold>
+      <fontcolorblue>0</fontcolorblue>
+      <fontcolorgreen>0</fontcolorgreen>
+      <fontcolorred>0</fontcolorred>
+      <fontitalic>N</fontitalic>
+      <fontname>Arial</fontname>
+      <fontsize>12</fontsize>
+      <height>46</height>
+      <xloc>832</xloc>
+      <yloc>272</yloc>
       <note>Save visualizations to ${Internal.Tranformation.Filename.Directory}
 as png files.</note>
-      <xloc>640</xloc>
-      <yloc>352</yloc>
       <width>467</width>
-      <heigth>46</heigth>
-      <fontname>Arial</fontname>
-      <fontsize>12</fontsize>
-      <fontbold>N</fontbold>
-      <fontitalic>N</fontitalic>
-      <fontcolorred>0</fontcolorred>
-      <fontcolorgreen>0</fontcolorgreen>
-      <fontcolorblue>0</fontcolorblue>
-      <backgroundcolorred>255</backgroundcolorred>
-      <backgroundcolorgreen>205</backgroundcolorgreen>
-      <backgroundcolorblue>112</backgroundcolorblue>
-      <bordercolorred>100</bordercolorred>
-      <bordercolorgreen>100</bordercolorgreen>
-      <bordercolorblue>100</bordercolorblue>
     </notepad>
     <notepad>
+      <backgroundcolorblue>112</backgroundcolorblue>
+      <backgroundcolorgreen>205</backgroundcolorgreen>
+      <backgroundcolorred>255</backgroundcolorred>
+      <bordercolorblue>100</bordercolorblue>
+      <bordercolorgreen>100</bordercolorgreen>
+      <bordercolorred>100</bordercolorred>
+      <fontbold>N</fontbold>
+      <fontcolorblue>0</fontcolorblue>
+      <fontcolorgreen>0</fontcolorgreen>
+      <fontcolorred>0</fontcolorred>
+      <fontitalic>N</fontitalic>
+      <fontname>Arial</fontname>
+      <fontsize>12</fontsize>
+      <height>64</height>
+      <xloc>144</xloc>
+      <yloc>464</yloc>
       <note>Randomly shuffle data,
 train an sklearn decision tree
 and save the model</note>
-      <xloc>144</xloc>
-      <yloc>464</yloc>
       <width>209</width>
-      <heigth>64</heigth>
-      <fontname>Arial</fontname>
-      <fontsize>12</fontsize>
-      <fontbold>N</fontbold>
-      <fontitalic>N</fontitalic>
-      <fontcolorred>0</fontcolorred>
-      <fontcolorgreen>0</fontcolorgreen>
-      <fontcolorblue>0</fontcolorblue>
-      <backgroundcolorred>255</backgroundcolorred>
-      <backgroundcolorgreen>205</backgroundcolorgreen>
-      <backgroundcolorblue>112</backgroundcolorblue>
-      <bordercolorred>100</bordercolorred>
-      <bordercolorgreen>100</bordercolorgreen>
-      <bordercolorblue>100</bordercolorblue>
     </notepad>
     <notepad>
-      <note>Load the model from the previous
-step and score the incoming data</note>
-      <xloc>576</xloc>
-      <yloc>464</yloc>
-      <width>241</width>
-      <heigth>46</heigth>
+      <backgroundcolorblue>112</backgroundcolorblue>
+      <backgroundcolorgreen>205</backgroundcolorgreen>
+      <backgroundcolorred>255</backgroundcolorred>
+      <bordercolorblue>100</bordercolorblue>
+      <bordercolorgreen>100</bordercolorgreen>
+      <bordercolorred>100</bordercolorred>
+      <fontbold>N</fontbold>
+      <fontcolorblue>0</fontcolorblue>
+      <fontcolorgreen>0</fontcolorgreen>
+      <fontcolorred>0</fontcolorred>
+      <fontitalic>N</fontitalic>
       <fontname>Arial</fontname>
       <fontsize>12</fontsize>
-      <fontbold>N</fontbold>
-      <fontitalic>N</fontitalic>
-      <fontcolorred>0</fontcolorred>
-      <fontcolorgreen>0</fontcolorgreen>
-      <fontcolorblue>0</fontcolorblue>
-      <backgroundcolorred>255</backgroundcolorred>
-      <backgroundcolorgreen>205</backgroundcolorgreen>
-      <backgroundcolorblue>112</backgroundcolorblue>
-      <bordercolorred>100</bordercolorred>
-      <bordercolorgreen>100</bordercolorgreen>
-      <bordercolorblue>100</bordercolorblue>
+      <height>46</height>
+      <xloc>832</xloc>
+      <yloc>464</yloc>
+      <note>Load the model from the previous
+step and score the incoming data</note>
+      <width>241</width>
     </notepad>
   </notepads>
   <order>
     <hop>
-      <from>CSV file input</from>
-      <to>CPython Script Executor</to>
+      <from>iris.csv</from>
+      <to>Compute quartiles for columns in iris data [sepal length, sepal width, petal length, petal width]</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>CSV file input</from>
-      <to>CPython Script Executor 2</to>
+      <from>iris.csv</from>
+      <to>PCA on Iris dataset (sepal length and width, petal length and width)</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>CSV file input</from>
-      <to>CPython Script Executor 3</to>
+      <from>iris.csv</from>
+      <to>Create scatter plot, Andrew's curves, Parallel coordinates, and RadViz</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>CPython Script Executor 3</from>
+      <from>Create scatter plot, Andrew's curves, Parallel coordinates, and RadViz</from>
       <to>JavaScript - Save visualizations as PNG files</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>CPython Script Executor 4</from>
-      <to>CPython Script Executor 5</to>
+      <from>Random Shuffle, Train Decision Tree, and output model</from>
+      <to>Load previously trained decision tree model and score incoming rows</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>CSV file input</from>
-      <to>CPython Script Executor 4</to>
+      <from>iris.csv</from>
+      <to>Random Shuffle, Train Decision Tree, and output model</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <transform>
-    <name>CPython Script Executor</name>
+    <name>Compute quartiles for columns in iris data [sepal length, sepal width, petal length, petal width]</name>
     <type>CPythonScriptExecutor</type>
     <description/>
     <distribute>Y</distribute>
@@ -209,7 +208,8 @@ step and score the incoming data</note>
     <include_input_as_output>N</include_input_as_output>
     <py_script># Python script
 from pandas import DataFrame
-quant = iris.quantile([0.25,0.5,0.75])
+quant = iris[['sepallength', 'sepalwidth', 'petallength', 'petalwidth']].quantile([0.25,0.5,0.75])
+print(iris.head())
 
 
 </py_script>
@@ -222,7 +222,7 @@ quant = iris.quantile([0.25,0.5,0.75])
       <frame_name0>iris</frame_name0>
     </frame_names>
     <incoming_step_names>
-      <step_name0>CSV file input</step_name0>
+      <step_name0>iris.csv</step_name0>
     </incoming_step_names>
     <output_fields>
       <output_field>
@@ -248,78 +248,12 @@ quant = iris.quantile([0.25,0.5,0.75])
     </output_fields>
     <attributes/>
     <GUI>
-      <xloc>304</xloc>
+      <xloc>656</xloc>
       <yloc>32</yloc>
     </GUI>
   </transform>
   <transform>
-    <name>CPython Script Executor 2</name>
-    <type>CPythonScriptExecutor</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <python_command/>
-    <python_path_entries/>
-    <python_server_id/>
-    <rows_to_process>ALL</rows_to_process>
-    <rows_to_process_size/>
-    <reservoir_sampling>N</reservoir_sampling>
-    <reservoir_sampling_size/>
-    <reservoir_sampling_seed>1</reservoir_sampling_seed>
-    <include_input_as_output>N</include_input_as_output>
-    <py_script># Python script
-from sklearn import datasets
-from pandas import DataFrame
-import sklearn.decomposition as deco
-import numpy as np
-
-X=iris2.iloc[:,[0,1,2,3]].values
-pca=deco.PCA(4)
-x_r=pca.fit(X).transform(X)
-pdf=DataFrame(x_r)
-</py_script>
-    <load_script_at_runtime>N</load_script_at_runtime>
-    <script_to_load/>
-    <continue_on_unset_vars>N</continue_on_unset_vars>
-    <py_vars_to_get>pdf</py_vars_to_get>
-    <include_frame_row_index>N</include_frame_row_index>
-    <frame_names>
-      <frame_name0>iris2</frame_name0>
-    </frame_names>
-    <incoming_step_names>
-      <step_name0>CSV file input</step_name0>
-    </incoming_step_names>
-    <output_fields>
-      <output_field>
-        <field_name>0</field_name>
-        <type>Number</type>
-      </output_field>
-      <output_field>
-        <field_name>1</field_name>
-        <type>Number</type>
-      </output_field>
-      <output_field>
-        <field_name>2</field_name>
-        <type>Number</type>
-      </output_field>
-      <output_field>
-        <field_name>3</field_name>
-        <type>Number</type>
-      </output_field>
-    </output_fields>
-    <attributes/>
-    <GUI>
-      <xloc>304</xloc>
-      <yloc>176</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>CPython Script Executor 3</name>
+    <name>Create scatter plot, Andrew's curves, Parallel coordinates, and RadViz</name>
     <type>CPythonScriptExecutor</type>
     <description/>
     <distribute>Y</distribute>
@@ -339,27 +273,31 @@ pdf=DataFrame(x_r)
     <reservoir_sampling_seed>1</reservoir_sampling_seed>
     <include_input_as_output>N</include_input_as_output>
     <py_script>import matplotlib.pyplot as plt
-from pandas.plotting import scatter_matrix
-from pandas.plotting import andrews_curves
-from pandas.plotting import parallel_coordinates
-from pandas.plotting import radviz
+from pandas.plotting import scatter_matrix, andrews_curves, parallel_coordinates, radviz
 import numpy as np
 
-iris=py_data
+iris = py_data  # Ensure py_data is already defined
+
 # Summarize the input data
-summary=str(iris.describe(include='all'))
+summary = str(iris.describe(include='all'))
+
 # Scatter plot
-scatter = scatter_matrix(iris,figsize=(6,6),diagonal='kde')
-fig=scatter[0][0].get_figure()
+scatter = scatter_matrix(iris, figsize=(12, 12), diagonal='kde')
+fig = scatter[0][0].get_figure()
+fig.set_dpi(100)  # Set DPI to 100
+
 # Andrew's curves
-fig2=plt.figure()
+fig2 = plt.figure(figsize=(12, 12), dpi=100)
 andrews_curves(iris, 'class')
+
 # Parallel coordinates
-fig3=plt.figure()
+fig3 = plt.figure(figsize=(12, 12), dpi=100)
 parallel_coordinates(iris, 'class')
+
 # RadViz
-fig4=plt.figure()
+fig4 = plt.figure(figsize=(12, 12), dpi=100)
 radviz(iris, 'class')
+
 
 </py_script>
     <load_script_at_runtime>N</load_script_at_runtime>
@@ -371,7 +309,7 @@ radviz(iris, 'class')
       <frame_name0>py_data</frame_name0>
     </frame_names>
     <incoming_step_names>
-      <step_name0>CSV file input</step_name0>
+      <step_name0>iris.csv</step_name0>
     </incoming_step_names>
     <output_fields>
       <output_field>
@@ -393,12 +331,233 @@ radviz(iris, 'class')
     </output_fields>
     <attributes/>
     <GUI>
-      <xloc>304</xloc>
+      <xloc>496</xloc>
       <yloc>384</yloc>
     </GUI>
   </transform>
   <transform>
-    <name>CPython Script Executor 4</name>
+    <name>JavaScript - Save visualizations as PNG files</name>
+    <type>ScriptValueMod</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <optimizationLevel>9</optimizationLevel>
+    <jsScripts>
+      <jsScript>
+        <jsScript_type>0</jsScript_type>
+        <jsScript_name>Script 1</jsScript_name>
+        <jsScript_script>var File = java.io.File;
+var FileOutputStream = java.io.FileOutputStream;
+var ImageIO = javax.imageio.ImageIO
+
+var folder = substr(getVariable('Internal.Entry.Current.Folder',''), 7);
+var filePrefix = folder.endsWith('/') ? folder + 'output' : folder + '/output';
+
+var image1path = filePrefix + File.separator + '1_Iris_Scatter_Plot.png';
+var image2path = filePrefix + File.separator + '2_Iris_Andrews_Curve_Plot.png';
+var image3path = filePrefix + File.separator + '3_Iris_Parallel_Coordinates_Plot.png';
+var image4path = filePrefix + File.separator + '4_Iris_Radvis_Plot.png';
+
+ImageIO.write(fig,'png',new File(image1path));
+ImageIO.write(fig2,'png', new File(image2path));
+ImageIO.write(fig3,'png',new File(image3path));
+ImageIO.write(fig4,'png',new File(image4path));
+</jsScript_script>
+      </jsScript>
+    </jsScripts>
+    <fields>    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1120</xloc>
+      <yloc>384</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Load previously trained decision tree model and score incoming rows</name>
+    <type>CPythonScriptExecutor</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <python_command/>
+    <python_path_entries/>
+    <python_server_id/>
+    <rows_to_process>ALL</rows_to_process>
+    <rows_to_process_size/>
+    <reservoir_sampling>N</reservoir_sampling>
+    <reservoir_sampling_size/>
+    <reservoir_sampling_seed>1</reservoir_sampling_seed>
+    <include_input_as_output>Y</include_input_as_output>
+    <py_script># Python script
+from sklearn import *
+from pandas import DataFrame
+import numpy as np
+import joblib
+import os
+
+# load the model...
+filename='${Internal.Entry.Current.Folder}/dt.sklearn'
+if os.name == 'nt':
+	filename=filename[8:] # strip the file:/// off
+else:
+	filename=filename[7:] # strip the "file://" off
+dt = joblib.load(filename)
+
+# predict the incoming data (we only need the input columns, not the target)
+X=test_data.iloc[:,[0,1,2,3]].values
+preds = dt.predict_proba(X)
+
+p = DataFrame(preds, columns=['predicted_class_Iris-setosa','predicted_class_Iris-versicolor','predicted_class_Iris-virginica'])
+</py_script>
+    <load_script_at_runtime>N</load_script_at_runtime>
+    <script_to_load/>
+    <continue_on_unset_vars>N</continue_on_unset_vars>
+    <py_vars_to_get>p</py_vars_to_get>
+    <include_frame_row_index>N</include_frame_row_index>
+    <frame_names>
+      <frame_name0>test_data</frame_name0>
+    </frame_names>
+    <incoming_step_names>
+      <step_name0>Random Shuffle, Train Decision Tree, and output model</step_name0>
+    </incoming_step_names>
+    <output_fields>
+      <output_field>
+        <field_name>sepallength</field_name>
+        <type>Number</type>
+      </output_field>
+      <output_field>
+        <field_name>sepalwidth</field_name>
+        <type>Number</type>
+      </output_field>
+      <output_field>
+        <field_name>petallength</field_name>
+        <type>Number</type>
+      </output_field>
+      <output_field>
+        <field_name>petalwidth</field_name>
+        <type>Number</type>
+      </output_field>
+      <output_field>
+        <field_name>class</field_name>
+        <type>String</type>
+      </output_field>
+      <output_field>
+        <field_name>predicted_class_Iris-setosa</field_name>
+        <type>Number</type>
+      </output_field>
+      <output_field>
+        <field_name>predicted_class_Iris-versicolor</field_name>
+        <type>Number</type>
+      </output_field>
+      <output_field>
+        <field_name>predicted_class_Iris-virginica</field_name>
+        <type>Number</type>
+      </output_field>
+    </output_fields>
+    <attributes/>
+    <GUI>
+      <xloc>944</xloc>
+      <yloc>528</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>PCA on Iris dataset (sepal length and width, petal length and width)</name>
+    <type>CPythonScriptExecutor</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <python_command/>
+    <python_path_entries/>
+    <python_server_id/>
+    <rows_to_process>ALL</rows_to_process>
+    <rows_to_process_size/>
+    <reservoir_sampling>N</reservoir_sampling>
+    <reservoir_sampling_size/>
+    <reservoir_sampling_seed>1</reservoir_sampling_seed>
+    <include_input_as_output>N</include_input_as_output>
+    <py_script># Python script: PCA on Iris dataset
+from sklearn import datasets
+from pandas import DataFrame
+import sklearn.decomposition as deco
+import numpy as np
+
+# Load the Iris dataset into a pandas DataFrame (assumed to be done before this)
+# iris2 = DataFrame(datasets.load_iris().data, columns=datasets.load_iris().feature_names)
+
+# Extract the first 4 feature columns: sepal length, sepal width, petal length, petal width
+X = iris2.iloc[:, [0, 1, 2, 3]].values  # Converts to NumPy array for PCA
+
+# Initialize PCA with 4 components (same as the number of features)
+# This allows analysis of how variance is distributed across components
+pca = deco.PCA(4)
+
+# Fit the PCA model on X and transform the data into the principal component space
+# Each new component is a linear combination of the original features
+x_r = pca.fit(X).transform(X)
+
+# Wrap the transformed data into a DataFrame for easier analysis or visualization
+pdf = DataFrame(x_r)
+
+# Optional:
+# You can view the explained variance ratio to understand how much variance each component captures
+# print(pca.explained_variance_ratio_)
+
+# This script is useful for:
+# 1. Exploring how the data can be expressed with fewer dimensions
+# 2. Understanding which directions in the feature space capture most variance
+# 3. Preparing for dimensionality reduction or visualization in 2D/3D
+</py_script>
+    <load_script_at_runtime>N</load_script_at_runtime>
+    <script_to_load/>
+    <continue_on_unset_vars>N</continue_on_unset_vars>
+    <py_vars_to_get>pdf</py_vars_to_get>
+    <include_frame_row_index>N</include_frame_row_index>
+    <frame_names>
+      <frame_name0>iris2</frame_name0>
+    </frame_names>
+    <incoming_step_names>
+      <step_name0>iris.csv</step_name0>
+    </incoming_step_names>
+    <output_fields>
+      <output_field>
+        <field_name>0</field_name>
+        <type>Number</type>
+      </output_field>
+      <output_field>
+        <field_name>1</field_name>
+        <type>Number</type>
+      </output_field>
+      <output_field>
+        <field_name>2</field_name>
+        <type>Number</type>
+      </output_field>
+      <output_field>
+        <field_name>3</field_name>
+        <type>Number</type>
+      </output_field>
+    </output_fields>
+    <attributes/>
+    <GUI>
+      <xloc>544</xloc>
+      <yloc>144</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Random Shuffle, Train Decision Tree, and output model</name>
     <type>CPythonScriptExecutor</type>
     <description/>
     <distribute>Y</distribute>
@@ -452,7 +611,7 @@ joblib.dump(dt,filename)
       <frame_name0>py_data</frame_name0>
     </frame_names>
     <incoming_step_names>
-      <step_name0>CSV file input</step_name0>
+      <step_name0>iris.csv</step_name0>
     </incoming_step_names>
     <output_fields>
       <output_field>
@@ -483,99 +642,7 @@ joblib.dump(dt,filename)
     </GUI>
   </transform>
   <transform>
-    <name>CPython Script Executor 5</name>
-    <type>CPythonScriptExecutor</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <python_command/>
-    <python_path_entries/>
-    <python_server_id/>
-    <rows_to_process>ALL</rows_to_process>
-    <rows_to_process_size/>
-    <reservoir_sampling>N</reservoir_sampling>
-    <reservoir_sampling_size/>
-    <reservoir_sampling_seed>1</reservoir_sampling_seed>
-    <include_input_as_output>Y</include_input_as_output>
-    <py_script># Python script
-from sklearn import *
-from pandas import DataFrame
-import numpy as np
-import joblib
-import os
-
-# load the model...
-filename='${Internal.Entry.Current.Folder}/dt.sklearn'
-if os.name == 'nt':
-	filename=filename[8:] # strip the file:/// off
-else:
-	filename=filename[7:] # strip the "file://" off
-dt = joblib.load(filename)
-
-# predict the incoming data (we only need the input columns, not the target)
-X=test_data.iloc[:,[0,1,2,3]].values
-preds = dt.predict_proba(X)
-
-p = DataFrame(preds, columns=['predicted_class_Iris-setosa','predicted_class_Iris-versicolor','predicted_class_Iris-virginica'])
-</py_script>
-    <load_script_at_runtime>N</load_script_at_runtime>
-    <script_to_load/>
-    <continue_on_unset_vars>N</continue_on_unset_vars>
-    <py_vars_to_get>p</py_vars_to_get>
-    <include_frame_row_index>N</include_frame_row_index>
-    <frame_names>
-      <frame_name0>test_data</frame_name0>
-    </frame_names>
-    <incoming_step_names>
-      <step_name0>CPython Script Executor 4</step_name0>
-    </incoming_step_names>
-    <output_fields>
-      <output_field>
-        <field_name>sepallength</field_name>
-        <type>Number</type>
-      </output_field>
-      <output_field>
-        <field_name>sepalwidth</field_name>
-        <type>Number</type>
-      </output_field>
-      <output_field>
-        <field_name>petallength</field_name>
-        <type>Number</type>
-      </output_field>
-      <output_field>
-        <field_name>petalwidth</field_name>
-        <type>Number</type>
-      </output_field>
-      <output_field>
-        <field_name>class</field_name>
-        <type>String</type>
-      </output_field>
-      <output_field>
-        <field_name>predicted_class_Iris-setosa</field_name>
-        <type>Number</type>
-      </output_field>
-      <output_field>
-        <field_name>predicted_class_Iris-versicolor</field_name>
-        <type>Number</type>
-      </output_field>
-      <output_field>
-        <field_name>predicted_class_Iris-virginica</field_name>
-        <type>Number</type>
-      </output_field>
-    </output_fields>
-    <attributes/>
-    <GUI>
-      <xloc>592</xloc>
-      <yloc>528</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>CSV file input</name>
+    <name>iris.csv</name>
     <type>CSVInput</type>
     <description/>
     <distribute>N</distribute>
@@ -585,7 +652,7 @@ p = DataFrame(preds, columns=['predicted_class_Iris-setosa','predicted_class_Iri
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <filename>${Internal.Entry.Current.Folder}/iris.csv</filename>
+    <filename>${Internal.Entry.Current.Folder}/input/iris.csv</filename>
     <filename_field/>
     <rownum_field/>
     <include_filename>N</include_filename>
@@ -593,6 +660,7 @@ p = DataFrame(preds, columns=['predicted_class_Iris-setosa','predicted_class_Iri
     <enclosure>"</enclosure>
     <header>Y</header>
     <buffer_size>50000</buffer_size>
+    <schemaDefinition/>
     <lazy_conversion>N</lazy_conversion>
     <add_filename_result>N</add_filename_result>
     <parallel>N</parallel>
@@ -659,48 +727,6 @@ p = DataFrame(preds, columns=['predicted_class_Iris-setosa','predicted_class_Iri
     <GUI>
       <xloc>80</xloc>
       <yloc>32</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>JavaScript - Save visualizations as PNG files</name>
-    <type>ScriptValueMod</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <optimizationLevel>9</optimizationLevel>
-    <jsScripts>
-      <jsScript>
-        <jsScript_type>0</jsScript_type>
-        <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>//Script here
-var File = java.io.File;
-var FileOutputStream = java.io.FileOutputStream;
-var ImageIO = javax.imageio.ImageIO
-
-var filePrefix = substr(getVariable('Internal.Entry.Current.Folder',''), 7);
-
-var image1path = filePrefix + File.separator + 'pic1.png';
-var image2path = filePrefix + File.separator + 'pic2.png';
-var image3path = filePrefix + File.separator + 'pic3.png';
-var image4path = filePrefix + File.separator + 'pic4.png';
-
-ImageIO.write(fig,'png',new File(image1path));
-ImageIO.write(fig2,'png', new File(image2path));
-ImageIO.write(fig3,'png',new File(image3path));
-ImageIO.write(fig4,'png',new File(image4path));
-</jsScript_script>
-      </jsScript>
-    </jsScripts>
-    <fields>    </fields>
-    <attributes/>
-    <GUI>
-      <xloc>592</xloc>
-      <yloc>384</yloc>
     </GUI>
   </transform>
   <transform_error_handling>
